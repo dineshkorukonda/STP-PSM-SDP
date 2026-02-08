@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
-import { getStoredUser } from "@/lib/storage";
+import { UserProvider } from "@/contexts/UserContext";
 import { cn } from "@/lib/utils";
+import type { User } from "@/types";
 
 type Section = "dashboard" | "create" | "passes";
 
@@ -14,50 +15,17 @@ function getSection(pathname: string): Section {
   return "dashboard";
 }
 
-export default function DashboardShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
+function DashboardShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const user = getStoredUser();
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [mounted, router]);
+  const section = getSection(pathname);
 
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  if (!mounted) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
-      </div>
-    );
-  }
-
-  const user = getStoredUser();
-  if (!user) {
-    return null;
-  }
-
-  const section = getSection(pathname);
-
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
-      {/* Desktop sidebar */}
       <div className="hidden md:block">
         <Sidebar activeSection={section} mobile={false} />
       </div>
@@ -111,5 +79,45 @@ export default function DashboardShell({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/me", { credentials: "include" })
+      .then((res) => {
+        if (res.status === 401) {
+          router.replace("/login");
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
+      .then((data) => {
+        if (data) setUser({ id: data.id, name: data.name ?? "", email: data.email });
+      })
+      .catch(() => router.replace("/login"))
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <UserProvider initialUser={user}>
+      <DashboardShellInner>{children}</DashboardShellInner>
+    </UserProvider>
   );
 }

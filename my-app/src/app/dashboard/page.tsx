@@ -1,23 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getStoredUser } from "@/lib/storage";
+import { useUser } from "@/contexts/UserContext";
 
 export default function DashboardPage() {
-  const [name, setName] = useState("");
-
-  useEffect(() => {
-    const user = getStoredUser();
-    if (user) setName(user.name);
-  }, []);
+  const { user } = useUser();
 
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-        Welcome back{name ? `, ${name}` : ""}
+        Welcome back{user?.name ? `, ${user.name}` : ""}
       </h1>
       <p className="mt-2 text-muted-foreground">
         Use the menu to create a new pass or view your existing passes.

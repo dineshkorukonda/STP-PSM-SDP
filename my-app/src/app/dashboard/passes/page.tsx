@@ -3,20 +3,28 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import PassCard from "@/components/PassCard";
-import { getStoredUser, getStoredPasses } from "@/lib/storage";
+import { useUser } from "@/contexts/UserContext";
 import type { TransportPass } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function MyPassesPage() {
   const [passes, setPasses] = useState<TransportPass[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const { user } = useUser();
 
   useEffect(() => {
-    const user = getStoredUser();
-    if (!user) return;
-    const all = getStoredPasses();
-    setPasses(all.filter((p) => p.userId === user.id));
-  }, []);
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    fetch(`/api/passes?userId=${encodeURIComponent(user.id)}`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: TransportPass[]) => setPasses(Array.isArray(data) ? data : []))
+      .catch(() => setPasses([]))
+      .finally(() => setLoading(false));
+  }, [user]);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -25,7 +33,13 @@ export default function MyPassesPage() {
         All your digital transport passes in one place.
       </p>
 
-      {passes.length === 0 ? (
+      {loading ? (
+        <Card className="mt-12 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <p className="text-muted-foreground">Loading passes…</p>
+          </CardContent>
+        </Card>
+      ) : passes.length === 0 ? (
         <Card className="mt-12 border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-muted-foreground">You don&apos;t have any passes yet.</p>

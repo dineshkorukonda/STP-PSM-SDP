@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import AuthIllustration from "@/components/AuthIllustration";
-import { setStoredUser } from "@/lib/storage";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -20,7 +19,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -48,20 +47,21 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const raw = localStorage.getItem("smartpass_users");
-      const users: { email: string }[] = raw ? JSON.parse(raw) : [];
-      if (users.some((u) => u.email.toLowerCase() === email.trim().toLowerCase())) {
-        setError("An account with this email already exists.");
-        setLoading(false);
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.");
         return;
       }
-
-      const id = "user-" + Math.random().toString(36).slice(2, 10);
-      const newUser = { id, name: name.trim(), email: email.trim().toLowerCase(), password };
-      users.push(newUser);
-      localStorage.setItem("smartpass_users", JSON.stringify(users));
-      localStorage.setItem("smartpass_passes", JSON.stringify([]));
-      setStoredUser({ id, name: name.trim(), email: email.trim().toLowerCase() });
       router.push("/dashboard");
     } catch {
       setError("Something went wrong. Please try again.");

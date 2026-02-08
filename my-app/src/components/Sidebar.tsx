@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { clearStoredUser } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 type Section = "dashboard" | "create" | "passes";
@@ -28,8 +27,8 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    clearStoredUser();
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     router.push("/");
   };
 

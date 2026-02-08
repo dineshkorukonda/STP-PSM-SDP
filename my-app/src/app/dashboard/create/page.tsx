@@ -3,12 +3,7 @@
 import { useState } from "react";
 import type { TransportType, Duration } from "@/types";
 import PassCard from "@/components/PassCard";
-import {
-  getStoredUser,
-  addStoredPass,
-  generatePassId,
-  getExpiryDate,
-} from "@/lib/storage";
+import { useUser } from "@/contexts/UserContext";
 import type { TransportPass } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,25 +28,38 @@ export default function CreatePassPage() {
   const [transportType, setTransportType] = useState<TransportType>("Bus");
   const [duration, setDuration] = useState<Duration>("Monthly");
   const [createdPass, setCreatedPass] = useState<TransportPass | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user } = useUser();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = getStoredUser();
     if (!user) return;
-
-    const id = generatePassId();
-    const expiryDate = getExpiryDate(duration);
-    const pass: TransportPass = {
-      id,
-      userId: user.id,
-      userName: user.name,
-      transportType,
-      duration,
-      expiryDate,
-      createdAt: new Date().toISOString(),
-    };
-    addStoredPass(pass);
-    setCreatedPass(pass);
+    setError("");
+    setCreating(true);
+    try {
+      const res = await fetch("/api/passes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          userName: user.name,
+          transportType,
+          duration,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Failed to create pass.");
+        return;
+      }
+      setCreatedPass(data as TransportPass);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
@@ -102,8 +110,9 @@ export default function CreatePassPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full" size="lg">
-                Create pass
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" size="lg" disabled={creating}>
+                {creating ? "Creating…" : "Create pass"}
               </Button>
             </form>
           </CardContent>

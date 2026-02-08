@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import AuthIllustration from "@/components/AuthIllustration";
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -17,7 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -31,26 +30,18 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-
     try {
-      const raw = localStorage.getItem("smartpass_users");
-      const users: { email: string; password: string; id: string; name: string }[] = raw
-        ? JSON.parse(raw)
-        : [];
-      const user = users.find(
-        (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
-      );
-
-      if (!user) {
-        setError("Invalid email or password.");
-        setLoading(false);
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Invalid email or password.");
         return;
       }
-
-      localStorage.setItem(
-        "smartpass_user",
-        JSON.stringify({ id: user.id, name: user.name, email: user.email })
-      );
       router.push("/dashboard");
     } catch {
       setError("Something went wrong. Please try again.");
