@@ -14,7 +14,17 @@ const navItems: { id: Section; label: string; href: string }[] = [
   { id: "passes", label: "My Passes", href: "/dashboard/passes" },
 ];
 
-export default function Sidebar({ activeSection }: { activeSection: Section }) {
+interface SidebarProps {
+  activeSection: Section;
+  onNavigate?: () => void;
+  mobile?: boolean;
+}
+
+export default function Sidebar({
+  activeSection,
+  onNavigate,
+  mobile = false,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -23,10 +33,14 @@ export default function Sidebar({ activeSection }: { activeSection: Section }) {
     router.push("/");
   };
 
-  return (
-    <aside className="flex w-56 flex-shrink-0 flex-col border-r border-border bg-card">
-      <div className="flex h-16 items-center border-b border-border px-6">
-        <Link href="/dashboard" className="text-lg font-bold text-primary">
+  const navContent = (
+    <>
+      <div className="flex h-14 items-center border-b border-border px-4 sm:h-16 sm:px-6">
+        <Link
+          href="/dashboard"
+          className="text-lg font-bold text-primary"
+          onClick={onNavigate}
+        >
           SmartPass
         </Link>
       </div>
@@ -39,8 +53,9 @@ export default function Sidebar({ activeSection }: { activeSection: Section }) {
             <Link
               key={item.id}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
-                "rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                "rounded-lg px-4 py-3 text-sm font-medium transition-colors min-h-[44px] flex items-center",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -53,12 +68,26 @@ export default function Sidebar({ activeSection }: { activeSection: Section }) {
         <Button
           type="button"
           variant="ghost"
-          className="mt-auto justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          className="mt-auto min-h-[44px] justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           onClick={handleLogout}
         >
           Logout
         </Button>
       </nav>
+    </>
+  );
+
+  if (mobile) {
+    return (
+      <aside className="flex w-64 flex-shrink-0 flex-col border-r border-border bg-card">
+        {navContent}
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="flex w-56 flex-shrink-0 flex-col border-r border-border bg-card">
+      {navContent}
     </aside>
   );
 }

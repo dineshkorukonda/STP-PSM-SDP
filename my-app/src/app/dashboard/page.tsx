@@ -20,7 +20,7 @@ export default function DashboardPage() {
         Welcome back{name ? `, ${name}` : ""}
       </h1>
       <p className="mt-2 text-muted-foreground">
-        Use the sidebar to create a new pass or view your existing passes.
+        Use the menu to create a new pass or view your existing passes.
       </p>
       <Card className="mt-8">
         <CardHeader>
