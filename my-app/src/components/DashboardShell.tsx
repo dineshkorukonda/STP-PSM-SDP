@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
-import DashboardIllustration from "./DashboardIllustration";
 import { getStoredUser } from "@/lib/storage";
 
 type Section = "dashboard" | "create" | "passes";
@@ -51,11 +50,8 @@ export default function DashboardShell({
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar activeSection={getSection(pathname)} />
-      <div className="flex flex-1 flex-col overflow-auto lg:flex-row">
-        <div className="hidden w-full border-b border-border bg-muted/20 lg:block lg:max-w-[320px] lg:border-b-0 lg:border-r">
-          <DashboardIllustration />
-        </div>
-        <div className="flex-1 p-6 sm:p-8">{children}</div>
+      <div className="flex-1 overflow-auto">
+        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </div>
     </div>
   );
