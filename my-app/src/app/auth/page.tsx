@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 
 type Mode = "login" | "signup";
 
@@ -18,7 +17,6 @@ function AuthContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +36,16 @@ function AuthContent() {
     setError("");
     setInfo("");
   }, [mode]);
+
+  const setLogin = () => {
+    setMode("login");
+    router.replace("/auth?mode=login", { scroll: false });
+  };
+
+  const setSignup = () => {
+    setMode("signup");
+    router.replace("/auth?mode=signup", { scroll: false });
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +110,7 @@ function AuthContent() {
         router.refresh();
         return;
       }
-      setInfo("Check your email to confirm, then sign in here.");
+      setInfo("Check your email to confirm, then sign in.");
     } catch {
       setError("Something went wrong. Try again.");
     } finally {
@@ -110,92 +118,53 @@ function AuthContent() {
     }
   };
 
+  const inputClass =
+    "w-full border-0 border-b border-border bg-transparent px-0 py-3 text-sm outline-none ring-0 placeholder:text-muted-foreground/50 focus:border-foreground";
+
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16">
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.35] dark:opacity-20"
-        aria-hidden
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, var(--color-muted-foreground) 1px, transparent 0)`,
-          backgroundSize: "28px 28px",
-        }}
-      />
-      <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-background via-background/95 to-muted/30" />
+    <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
+      <div className="w-full max-w-[320px]">
+        <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+          ← SmartPass
+        </Link>
 
-      <div className="relative w-full max-w-[400px]">
-        <div className="mb-10 flex flex-col items-center text-center">
-          <Link
-            href="/"
-            className="text-sm font-semibold tracking-tight text-foreground transition-opacity hover:opacity-70"
-          >
-            SmartPass
-          </Link>
-          <h1 className="mt-8 text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
-            {mode === "login" ? "Sign in" : "Create account"}
-          </h1>
-          <p className="mt-2 max-w-[280px] text-sm leading-relaxed text-muted-foreground">
-            {mode === "login"
-              ? "Welcome back. Use your email and password."
-              : "Start issuing digital passes in a few seconds."}
-          </p>
-        </div>
+        <h1 className="mt-10 text-2xl font-medium tracking-tight">
+          {mode === "login" ? "Sign in" : "Sign up"}
+        </h1>
 
-        <div
-          className="mb-8 flex rounded-full border border-border bg-muted/40 p-1 dark:bg-muted/20"
-          role="tablist"
-          aria-label="Account mode"
-        >
+        <p className="mt-6 text-sm text-muted-foreground">
           <button
             type="button"
-            role="tab"
-            aria-selected={mode === "login"}
-            className={cn(
-              "flex-1 rounded-full py-2.5 text-sm font-medium transition-all duration-200",
+            onClick={setLogin}
+            className={
               mode === "login"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            onClick={() => {
-              setMode("login");
-              router.replace("/auth?mode=login", { scroll: false });
-            }}
+                ? "text-foreground"
+                : "hover:text-foreground text-muted-foreground"
+            }
           >
             Sign in
           </button>
+          <span className="mx-2 text-border">·</span>
           <button
             type="button"
-            role="tab"
-            aria-selected={mode === "signup"}
-            className={cn(
-              "flex-1 rounded-full py-2.5 text-sm font-medium transition-all duration-200",
+            onClick={setSignup}
+            className={
               mode === "signup"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            onClick={() => {
-              setMode("signup");
-              router.replace("/auth?mode=signup", { scroll: false });
-            }}
+                ? "text-foreground"
+                : "hover:text-foreground text-muted-foreground"
+            }
           >
             Sign up
           </button>
-        </div>
+        </p>
 
-        <form onSubmit={onSubmit} className="space-y-5">
-          {error && (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-center text-sm text-destructive">
-              {error}
-            </p>
-          )}
-          {info && (
-            <p className="rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-center text-sm text-primary">
-              {info}
-            </p>
-          )}
+        <form onSubmit={onSubmit} className="mt-10 space-y-6">
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {info ? <p className="text-sm text-muted-foreground">{info}</p> : null}
 
-          {mode === "signup" && (
-            <div className="space-y-1.5">
-              <label htmlFor="auth-name" className="text-xs font-medium text-muted-foreground">
+          {mode === "signup" ? (
+            <div>
+              <label htmlFor="auth-name" className="sr-only">
                 Name
               </label>
               <input
@@ -205,14 +174,14 @@ function AuthContent() {
                 autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="focus-visible:ring-ring w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-shadow placeholder:text-muted-foreground/60 focus-visible:ring-2"
-                placeholder="Alex Morgan"
+                className={inputClass}
+                placeholder="Name"
               />
             </div>
-          )}
+          ) : null}
 
-          <div className="space-y-1.5">
-            <label htmlFor="auth-email" className="text-xs font-medium text-muted-foreground">
+          <div>
+            <label htmlFor="auth-email" className="sr-only">
               Email
             </label>
             <input
@@ -222,78 +191,62 @@ function AuthContent() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="focus-visible:ring-ring w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-shadow placeholder:text-muted-foreground/60 focus-visible:ring-2"
-              placeholder="you@email.com"
+              className={inputClass}
+              placeholder="Email"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <label htmlFor="auth-password" className="text-xs font-medium text-muted-foreground">
-                Password
-              </label>
-            </div>
-            <div className="relative">
-              <input
-                id="auth-password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="focus-visible:ring-ring w-full rounded-xl border border-border bg-background px-4 py-3 pr-12 text-sm outline-none transition-shadow placeholder:text-muted-foreground/60 focus-visible:ring-2"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium"
-                onClick={() => setShowPassword((s) => !s)}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
+          <div>
+            <label htmlFor="auth-password" className="sr-only">
+              Password
+            </label>
+            <input
+              id="auth-password"
+              name="password"
+              type="password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={inputClass}
+              placeholder="Password"
+            />
           </div>
 
-          {mode === "signup" && (
-            <div className="space-y-1.5">
-              <label htmlFor="auth-confirm" className="text-xs font-medium text-muted-foreground">
+          {mode === "signup" ? (
+            <div>
+              <label htmlFor="auth-confirm" className="sr-only">
                 Confirm password
               </label>
               <input
                 id="auth-confirm"
                 name="confirm"
-                type={showPassword ? "text" : "password"}
+                type="password"
                 autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="focus-visible:ring-ring w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-shadow placeholder:text-muted-foreground/60 focus-visible:ring-2"
-                placeholder="••••••••"
+                className={inputClass}
+                placeholder="Confirm password"
               />
             </div>
-          )}
+          ) : null}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-foreground py-3.5 text-sm font-medium text-background transition-transform active:scale-[0.98] disabled:opacity-60 dark:bg-primary dark:text-primary-foreground"
+            className="mt-4 text-sm font-medium text-foreground underline-offset-4 hover:underline disabled:opacity-50"
           >
             {loading
               ? mode === "login"
                 ? "Signing in…"
-                : "Creating account…"
+                : "Creating…"
               : mode === "login"
                 ? "Continue"
                 : "Create account"}
           </button>
         </form>
 
-        <p className="mt-10 text-center text-xs text-muted-foreground">
-          <Link href="/" className="underline-offset-4 hover:text-foreground hover:underline">
-            ← Back to home
-          </Link>
-          <span className="mx-2 text-border">·</span>
-          <Link href="/verify" className="underline-offset-4 hover:text-foreground hover:underline">
+        <p className="mt-16 text-xs text-muted-foreground">
+          <Link href="/verify" className="hover:text-foreground">
             Verify a pass
           </Link>
         </p>
