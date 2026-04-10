@@ -6,12 +6,14 @@ import Sidebar from "./Sidebar";
 import { UserProvider } from "@/contexts/UserContext";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types";
+import { createClient } from "@/lib/supabase/client";
 
-type Section = "dashboard" | "create" | "passes";
+type Section = "dashboard" | "create" | "passes" | "verify";
 
 function getSection(pathname: string): Section {
   if (pathname.startsWith("/dashboard/create")) return "create";
   if (pathname.startsWith("/dashboard/passes")) return "passes";
+  if (pathname.startsWith("/dashboard/verify")) return "verify";
   return "dashboard";
 }
 
@@ -21,7 +23,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   const section = getSection(pathname);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    queueMicrotask(() => setMobileMenuOpen(false));
   }, [pathname]);
 
   return (
@@ -30,7 +32,6 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         <Sidebar activeSection={section} mobile={false} />
       </div>
 
-      {/* Mobile overlay */}
       {mobileMenuOpen && (
         <button
           type="button"
@@ -40,10 +41,9 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Mobile sidebar drawer */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-card shadow-xl transition-transform duration-200 ease-out md:hidden",
+          "fixed inset-y-0 left-0 z-50 w-72 transform border-r border-border bg-sidebar shadow-xl transition-transform duration-200 ease-out md:hidden",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -54,9 +54,8 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         />
       </div>
 
-      {/* Main content + mobile header */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur-md md:hidden">
           <button
             type="button"
             aria-label="Open menu"
@@ -69,17 +68,38 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
               <span className="block h-0.5 w-4 rounded-full bg-current" />
             </span>
           </button>
-          <span className="truncate text-lg font-bold text-primary">
-            SmartPass
-          </span>
+          <span className="truncate text-lg font-bold text-primary">SmartPass</span>
         </header>
 
         <main className="flex-1 overflow-auto">
-          <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+          <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
       </div>
     </div>
   );
+}
+
+async function fetchDashboardUser(): Promise<User | null> {
+  const supabase = createClient();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  if (!authUser?.email) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", authUser.id)
+    .maybeSingle();
+
+  const name =
+    profile?.display_name?.trim() ||
+    authUser.user_metadata?.full_name ||
+    authUser.user_metadata?.name ||
+    authUser.email.split("@")[0] ||
+    "";
+
+  return { id: authUser.id, name, email: authUser.email };
 }
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -88,16 +108,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/me", { credentials: "include" })
-      .then((res) => {
-        if (res.status === 401) {
-          router.replace("/login");
-          return null;
-        }
-        return res.ok ? res.json() : null;
-      })
-      .then((data) => {
-        if (data) setUser({ id: data.id, name: data.name ?? "", email: data.email });
+    fetchDashboardUser()
+      .then((u) => {
+        if (!u) router.replace("/login");
+        else setUser(u);
       })
       .catch(() => router.replace("/login"))
       .finally(() => setLoading(false));
@@ -105,8 +119,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
+        <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
       </div>
     );
   }

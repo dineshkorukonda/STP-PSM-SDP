@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import PassCard from "@/components/PassCard";
 import { useUser } from "@/contexts/UserContext";
-import type { TransportPass } from "@/types";
+import { createClient } from "@/lib/supabase/client";
+import type { TransportPass, TransportType, Duration } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function MyPassesPage() {
   const [passes, setPasses] = useState<TransportPass[]>([]);
@@ -15,44 +17,87 @@ export default function MyPassesPage() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) {
+    let cancelled = false;
+
+    (async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("passes")
+        .select(
+          "id, user_id, pass_type, duration_type, start_date, expiry_date, status, qr_token, created_at"
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (cancelled) return;
+
+      if (error || !data) {
+        setPasses([]);
+      } else {
+        const mapped: TransportPass[] = data.map((row) => ({
+          id: String(row.id),
+          userId: String(row.user_id),
+          userName: user.name,
+          transportType: row.pass_type as TransportType,
+          duration: row.duration_type as Duration,
+          startDate: row.start_date
+            ? String(row.start_date).slice(0, 10)
+            : "",
+          expiryDate: row.expiry_date
+            ? String(row.expiry_date).slice(0, 10)
+            : "",
+          createdAt: row.created_at
+            ? new Date(String(row.created_at)).toISOString()
+            : "",
+          qrToken: String(row.qr_token ?? ""),
+          status: String(row.status ?? "active"),
+        }));
+        setPasses(mapped);
+      }
       setLoading(false);
-      return;
-    }
-    fetch(`/api/passes?userId=${encodeURIComponent(user.id)}`, { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data: TransportPass[]) => setPasses(Array.isArray(data) ? data : []))
-      .catch(() => setPasses([]))
-      .finally(() => setLoading(false));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">My Passes</h1>
-      <p className="mt-2 text-muted-foreground">
-        All your digital transport passes in one place.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">My passes</h1>
+        <p className="mt-2 text-muted-foreground">
+          All passes tied to your account. Each QR encodes only a token—verify to see full
+          details.
+        </p>
+      </div>
 
       {loading ? (
-        <Card className="mt-12 border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center gap-3 py-20">
+            <Loader2 className="size-8 animate-spin text-primary" />
             <p className="text-muted-foreground">Loading passes…</p>
           </CardContent>
         </Card>
       ) : passes.length === 0 ? (
-        <Card className="mt-12 border-dashed">
+        <Card className="border-dashed border-2 bg-muted/10">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-muted-foreground">You don&apos;t have any passes yet.</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Create your first pass from the Create Pass section.
+            <p className="font-medium text-foreground">No passes yet</p>
+            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+              Create your first digital pass—it only takes a moment.
             </p>
-            <Button asChild className="mt-6" size="lg">
-              <Link href="/dashboard/create">Create Pass</Link>
+            <Button asChild className="mt-8" size="lg">
+              <Link href="/dashboard/create">Create pass</Link>
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="mt-8 grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2">
           {passes.map((pass) => (
             <PassCard key={pass.id} pass={pass} />
           ))}

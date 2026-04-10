@@ -1,48 +1,42 @@
-# Database setup
+# Supabase setup (SmartPass)
 
-## Supabase
+Auth and data live in **one Supabase project**. There is no separate Neon database in the app code.
 
-Used for auth / realtime (optional). Already configured via:
+## Environment
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
-
-Client: `import { supabase } from "@/lib/supabase/client"` (browser) or `createSupabaseServerClient()` (server).
-
-## Neon (Postgres)
-
-Used for the main app schema (users, passes, transport_types, payments, validation_logs).
-
-### 1. Create a Neon project
-
-At [neon.tech](https://neon.tech), create a project and copy the **pooled** connection string (serverless-friendly).
-
-### 2. Environment
-
-Add to `.env.local`:
+Add to `my-app/.env.local`:
 
 ```env
-DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_anon_key
 ```
 
-### 3. Run the schema
+(`NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported.)
 
-In the Neon SQL Editor (or any Postgres client connected to your Neon DB), run the contents of `schema.sql` in this folder. That creates:
+Optional: set **Site URL** and **Redirect URLs** in Supabase Auth settings to include:
 
-- `users` – id, name, email, password_hash, role, created_at, updated_at
-- `passes` – id, user_id, pass_type, duration_type, start_date, expiry_date, status, qr_token, created_at
-- `transport_types` – id, name, is_active, created_at
-- `pass_transport_map` – pass_id ↔ transport_type_id (many-to-many)
-- `payments` – id, user_id, pass_id, amount, payment_status, transaction_reference, created_at
-- `validation_logs` – id, pass_id, transport_type_id, scanned_at, location, validation_status
+- `http://localhost:3000/auth/callback`
+- your production URL + `/auth/callback`
 
-### 4. Use in code (server-only)
+## Database
 
-```ts
-import { getNeonDb } from "@/lib/db/neon";
+1. Open the Supabase SQL Editor for your project.
+2. Run the full contents of `migrations/001_smartpass_supabase.sql`.
 
-const sql = getNeonDb();
-const rows = await sql`SELECT * FROM users WHERE email = ${email}`;
-```
+This creates:
 
-Types for these tables are in `src/types/db.ts`.
+- `profiles` — linked to `auth.users`, auto-filled on signup via trigger
+- `transport_types` — reference data (seeded)
+- `passes` — user passes with unique `qr_token` and RLS
+- `pass_transport_map` — optional link from pass to transport type
+- `get_pass_public(token)` — RPC callable by `anon` for QR verification (safe fields only)
+
+## Clients in code
+
+- Browser: `createClient()` from `@/lib/supabase/client` (uses `@supabase/ssr` `createBrowserClient`)
+- Server (Route Handlers, Server Components): `createClient()` from `@/lib/supabase/server`
+- Middleware refreshes the auth cookie via `@supabase/ssr` `createServerClient`
+
+## Legacy Neon schema
+
+The older `schema.sql` in this folder described a standalone Postgres layout with a custom `users` table. **Do not mix** that with Supabase Auth—use the migration above instead.
