@@ -8,7 +8,6 @@ import {
   Shield,
   LayoutDashboard,
   ScanLine,
-  Zap,
   ArrowRight,
   ChevronRight,
 } from "lucide-react";
@@ -96,20 +95,20 @@ export default function LandingPage() {
     <div className="relative min-h-screen bg-background text-foreground">
       <div
         ref={orbRef}
-        className="pointer-events-none fixed -left-32 top-1/4 size-[420px] rounded-full bg-primary/15 blur-3xl transition-transform duration-500 ease-out will-change-transform dark:bg-primary/25"
+        className="pointer-events-none fixed -left-32 top-1/4 size-[420px] rounded-full bg-primary/10 blur-3xl transition-transform duration-500 ease-out will-change-transform"
         aria-hidden
       />
       <div
-        className="pointer-events-none fixed -right-24 bottom-1/4 size-80 rounded-full bg-primary/10 blur-3xl dark:bg-primary/15"
+        className="pointer-events-none fixed -right-24 bottom-1/4 size-80 rounded-full bg-primary/5 blur-3xl"
         aria-hidden
       />
 
-      <header className="relative z-10 border-b border-border/50">
+      <header className="relative z-10 border-b border-border">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:h-16 sm:px-6">
           <Link href="/" className="text-sm font-semibold tracking-tight">
             SmartPass
           </Link>
-          <nav className="flex items-center gap-2 text-sm" aria-label="Main">
+          <nav className="flex items-center gap-6 text-sm" aria-label="Main">
             <Link
               href="/verify"
               className="hidden text-muted-foreground transition-colors hover:text-foreground sm:inline"
@@ -118,13 +117,13 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/auth?mode=login"
-              className="rounded-full px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
               Sign in
             </Link>
             <Link
               href="/auth?mode=signup"
-              className="rounded-full bg-foreground px-3 py-1.5 font-medium text-background dark:bg-primary dark:text-primary-foreground"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
             >
               Start
             </Link>
@@ -133,9 +132,8 @@ export default function LandingPage() {
       </header>
 
       <main className="relative z-10">
-        <section className="mx-auto max-w-5xl px-4 pb-20 pt-16 sm:px-6 sm:pt-24 sm:pb-28">
-          <p className="flex items-center justify-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            <Zap className="size-3.5" aria-hidden />
+        <section className="mx-auto max-w-5xl px-4 pb-20 pt-16 sm:px-6 sm:pb-28 sm:pt-24">
+          <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Digital transport
           </p>
           <h1 className="mx-auto mt-6 max-w-2xl text-center text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl sm:leading-[1.08]">
@@ -147,17 +145,17 @@ export default function LandingPage() {
             Minimal tools for travellers and operators: issue passes, scan QR codes, verify
             validity—without clutter.
           </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
             <Link
               href="/auth?mode=signup"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-medium text-background transition-transform active:scale-[0.98] dark:bg-primary dark:text-primary-foreground"
+              className="inline-flex items-center gap-2 text-sm font-medium text-foreground underline-offset-4 hover:underline"
             >
               Create account
               <ArrowRight className="size-4" />
             </Link>
             <Link
               href="/verify"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-border px-7 text-sm font-medium text-foreground transition-colors hover:bg-muted/50"
+              className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
               Try verify
             </Link>
@@ -166,49 +164,56 @@ export default function LandingPage() {
 
         <section
           id="features"
-          className="mx-auto max-w-5xl border-t border-border/50 px-4 py-16 sm:px-6 sm:py-20"
+          className="mx-auto max-w-5xl border-t border-border px-4 py-16 sm:px-6 sm:py-20"
           aria-labelledby="features-heading"
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 id="features-heading" className="text-lg font-semibold tracking-tight">
-                What you get
-              </h2>
-              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                Tap a highlight—details update live below.
-              </p>
-            </div>
+          <div>
+            <h2 id="features-heading" className="text-lg font-semibold tracking-tight">
+              What you get
+            </h2>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+              Choose a topic—the detail updates below.
+            </p>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-2" role="list">
-            {features.map((f) => {
-              const Icon = f.icon;
+          <div
+            className="mt-8 flex flex-wrap gap-x-1 gap-y-2 text-sm"
+            role="tablist"
+            aria-label="Features"
+          >
+            {features.map((f, i) => {
               const isOn = activeId === f.id;
               return (
-                <button
-                  key={f.id}
-                  type="button"
-                  role="listitem"
-                  onMouseEnter={() => setActiveId(f.id)}
-                  onFocus={() => setActiveId(f.id)}
-                  onClick={() => setActiveId(f.id)}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all duration-200",
-                    isOn
-                      ? "border-primary/40 bg-primary/10 text-foreground shadow-sm"
-                      : "border-transparent bg-muted/50 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon className="size-4 opacity-80" aria-hidden />
-                  {f.label}
-                </button>
+                <span key={f.id} className="inline-flex items-center">
+                  {i > 0 ? (
+                    <span className="mx-2 text-muted-foreground/40" aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={isOn}
+                    onMouseEnter={() => setActiveId(f.id)}
+                    onFocus={() => setActiveId(f.id)}
+                    onClick={() => setActiveId(f.id)}
+                    className={cn(
+                      "transition-colors",
+                      isOn
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                </span>
               );
             })}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-border/80 bg-card/50 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+          <div className="mt-10 border-t border-border pt-10">
             <div className="flex items-start gap-4">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <div className="text-primary">
                 <ActiveIcon className="size-5" aria-hidden />
               </div>
               <div className="min-w-0 flex-1">
@@ -228,7 +233,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-5xl border-t border-border/50 px-4 py-16 sm:px-6 sm:py-20">
+        <section className="mx-auto max-w-5xl border-t border-border px-4 py-16 sm:px-6 sm:py-20">
           <h2 className="text-lg font-semibold tracking-tight">How it works</h2>
           <ol className="mt-10 grid gap-8 sm:grid-cols-3">
             {steps.map((s, i) => (
@@ -243,16 +248,16 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        <section className="mx-auto max-w-5xl border-t border-border/50 px-4 py-16 sm:px-6 sm:py-24">
-          <div className="rounded-2xl border border-border/60 bg-muted/30 px-6 py-12 text-center sm:px-12">
+        <section className="mx-auto max-w-5xl border-t border-border px-4 py-16 sm:px-6 sm:py-24">
+          <div className="border-t border-border pt-12 text-center sm:pt-16">
             <p className="text-lg font-semibold tracking-tight">Ready when you are.</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
               No noise—just sign in and create your first pass.
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
               <Link
                 href="/auth"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-8 text-sm font-medium text-background dark:bg-primary dark:text-primary-foreground"
+                className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
               >
                 Open auth
               </Link>
@@ -266,7 +271,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <footer className="border-t border-border/50 py-10">
+        <footer className="border-t border-border py-10">
           <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
             <span>© {new Date().getFullYear()} SmartPass</span>
             <div className="flex gap-6">

@@ -9,16 +9,16 @@ export default function Navbar() {
         <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
           SmartPass
         </Link>
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-5 text-sm">
           <Link
             href="/auth?mode=login"
-            className="rounded-full px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Sign in
           </Link>
           <Link
             href="/auth?mode=signup"
-            className="rounded-full bg-foreground px-3 py-2 text-sm font-medium text-background dark:bg-primary dark:text-primary-foreground"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
           >
             Get started
           </Link>
