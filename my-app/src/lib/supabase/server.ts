@@ -1,16 +1,26 @@
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { getSupabaseAnonKey, getSupabaseUrl } from "./env";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+type CookieToSet = { name: string; value: string; options: CookieOptions };
 
-/** Use in Server Components, Route Handlers, or API routes. For auth with cookies, add @supabase/ssr later. */
-export function createSupabaseServerClient() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY)"
-    );
-  }
-  return createClient(supabaseUrl, supabaseAnonKey);
+export async function createClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet: CookieToSet[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        } catch {
+          /* set from Server Component — ignore */
+        }
+      },
+    },
+  });
 }

@@ -3,12 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import AuthIllustration from "@/components/AuthIllustration";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -17,11 +24,13 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setInfo("");
 
     if (!name.trim()) {
       setError("Please enter your name.");
@@ -47,22 +56,27 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password,
-        }),
-        credentials: "include",
+      const supabase = createClient();
+      const { data, error: signErr } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: { full_name: name.trim(), name: name.trim() },
+        },
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Something went wrong. Please try again.");
+      if (signErr) {
+        setError(signErr.message);
         return;
       }
-      router.push("/dashboard");
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+      setInfo(
+        "Check your email to confirm your account, then sign in. If confirmation is disabled in your project, try logging in now."
+      );
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -73,7 +87,16 @@ export default function SignupPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-        <div className="flex items-center justify-center lg:min-h-0">
+        <div className="relative hidden overflow-hidden bg-gradient-to-br from-primary/15 via-primary-light/40 to-background lg:flex lg:items-center lg:justify-center">
+          <div className="absolute inset-0 opacity-[0.04]" aria-hidden>
+            <div
+              className="h-full w-full"
+              style={{
+                backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
+                backgroundSize: "24px 24px",
+              }}
+            />
+          </div>
           <AuthIllustration />
         </div>
         <main className="flex flex-col justify-center px-6 py-12 lg:px-12">
@@ -84,19 +107,24 @@ export default function SignupPage() {
               </Link>
               <h1 className="mt-8 text-2xl font-bold tracking-tight">Get started</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Create an account to get your digital transport pass.
+                Create an account—your profile is created automatically in Supabase.
               </p>
             </div>
-            <Card>
+            <Card className="border-border/80 shadow-lg">
               <CardHeader className="space-y-0 pb-4">
                 <CardTitle className="text-lg">Create account</CardTitle>
-                <CardDescription>Sign up with your details</CardDescription>
+                <CardDescription>Name, email, and password</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {error && (
                     <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
                       {error}
+                    </div>
+                  )}
+                  {info && (
+                    <div className="rounded-md bg-primary/10 px-3 py-2 text-sm text-primary">
+                      {info}
                     </div>
                   )}
                   <div className="space-y-2">
@@ -108,7 +136,7 @@ export default function SignupPage() {
                       placeholder="Your name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="h-10"
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -120,7 +148,7 @@ export default function SignupPage() {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-10"
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -131,7 +159,7 @@ export default function SignupPage() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-10"
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -142,16 +170,19 @@ export default function SignupPage() {
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="h-10"
+                      className="h-11"
                     />
                   </div>
-                  <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                  <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
                     {loading ? "Creating account…" : "Sign up"}
                   </Button>
                 </form>
                 <p className="mt-6 text-center text-sm text-muted-foreground">
                   Already have an account?{" "}
-                  <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+                  <Link
+                    href="/login"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
                     Log in
                   </Link>
                 </p>

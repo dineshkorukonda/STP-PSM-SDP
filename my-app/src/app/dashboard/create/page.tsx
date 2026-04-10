@@ -1,11 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import type { TransportType, Duration } from "@/types";
+import type { TransportType, Duration, TransportPass } from "@/types";
 import PassCard from "@/components/PassCard";
 import { useUser } from "@/contexts/UserContext";
-import type { TransportPass } from "@/types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
+import {
+  computeExpiryDate,
+  formatDateISO,
+  generateQrToken,
+} from "@/lib/pass-utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Sparkles } from "lucide-react";
 
 const TRANSPORT_OPTIONS: TransportType[] = [
   "Bus",
@@ -39,22 +51,59 @@ export default function CreatePassPage() {
     setError("");
     setCreating(true);
     try {
-      const res = await fetch("/api/passes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          userName: user.name,
-          transportType,
-          duration,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Failed to create pass.");
+      const supabase = createClient();
+      const { start, expiry } = computeExpiryDate(duration);
+      const startDateStr = formatDateISO(start);
+      const expiryDateStr = formatDateISO(expiry);
+      const qrToken = generateQrToken();
+
+      const { data: inserted, error: insertErr } = await supabase
+        .from("passes")
+        .insert({
+          user_id: user.id,
+          pass_type: transportType,
+          duration_type: duration,
+          start_date: startDateStr,
+          expiry_date: expiryDateStr,
+          status: "active",
+          qr_token: qrToken,
+        })
+        .select("id, user_id, pass_type, duration_type, start_date, expiry_date, status, qr_token, created_at")
+        .single();
+
+      if (insertErr || !inserted) {
+        setError(insertErr?.message ?? "Failed to create pass.");
         return;
       }
-      setCreatedPass(data as TransportPass);
+
+      const { data: tt } = await supabase
+        .from("transport_types")
+        .select("id")
+        .eq("name", transportType)
+        .maybeSingle();
+
+      if (tt?.id != null) {
+        await supabase.from("pass_transport_map").insert({
+          pass_id: inserted.id,
+          transport_type_id: tt.id,
+        });
+      }
+
+      const pass: TransportPass = {
+        id: String(inserted.id),
+        userId: String(inserted.user_id),
+        userName: user.name,
+        transportType: inserted.pass_type as TransportType,
+        duration: inserted.duration_type as Duration,
+        startDate: String(inserted.start_date ?? startDateStr).slice(0, 10),
+        expiryDate: String(inserted.expiry_date ?? expiryDateStr).slice(0, 10),
+        createdAt: inserted.created_at
+          ? new Date(String(inserted.created_at)).toISOString()
+          : new Date().toISOString(),
+        qrToken: String(inserted.qr_token),
+        status: String(inserted.status ?? "active"),
+      };
+      setCreatedPass(pass);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -63,27 +112,33 @@ export default function CreatePassPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Create Pass</h1>
-      <p className="mt-2 text-muted-foreground">
-        Choose transport type and duration to generate a new digital pass.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Create pass</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          Choose transport and duration. We&apos;ll issue a pass with a secure QR token—full
+          details load when the code is verified.
+        </p>
+      </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <Card>
+      <div className="grid gap-8 lg:grid-cols-2">
+        <Card className="border-border/80 shadow-md">
           <CardHeader>
-            <CardTitle>New pass</CardTitle>
-            <CardDescription>Select options and create your pass</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="size-5 text-primary" />
+              New pass
+            </CardTitle>
+            <CardDescription>Options apply immediately after you submit.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="transportType">Transport Type</Label>
+                <Label htmlFor="transportType">Transport</Label>
                 <Select
                   value={transportType}
                   onValueChange={(v) => setTransportType(v as TransportType)}
                 >
-                  <SelectTrigger id="transportType" className="h-10 w-full">
+                  <SelectTrigger id="transportType" className="h-11 w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -97,8 +152,11 @@ export default function CreatePassPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="duration">Duration</Label>
-                <Select value={duration} onValueChange={(v) => setDuration(v as Duration)}>
-                  <SelectTrigger id="duration" className="h-10 w-full">
+                <Select
+                  value={duration}
+                  onValueChange={(v) => setDuration(v as Duration)}
+                >
+                  <SelectTrigger id="duration" className="h-11 w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -111,21 +169,21 @@ export default function CreatePassPage() {
                 </Select>
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" className="w-full" size="lg" disabled={creating}>
+              <Button type="submit" className="w-full h-11" size="lg" disabled={creating}>
                 {creating ? "Creating…" : "Create pass"}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Your pass</h2>
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Preview</h2>
           {createdPass ? (
             <PassCard pass={createdPass} />
           ) : (
-            <Card className="flex min-h-[200px] items-center justify-center border-dashed">
+            <Card className="flex min-h-[280px] items-center justify-center border-dashed border-2 bg-muted/20">
               <CardContent className="py-12 text-center text-muted-foreground">
-                Submit the form to generate a pass. It will appear here.
+                Your new pass and QR will show here after you create it.
               </CardContent>
             </Card>
           )}

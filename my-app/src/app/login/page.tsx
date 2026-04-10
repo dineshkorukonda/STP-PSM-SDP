@@ -1,19 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import AuthIllustration from "@/components/AuthIllustration";
-export default function LoginPage() {
+import { createClient } from "@/lib/supabase/client";
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const authError = searchParams.get("error");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    authError === "auth" ? "Sign-in link expired or invalid. Try again." : ""
+  );
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,18 +44,17 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
-        credentials: "include",
+      const supabase = createClient();
+      const { error: signErr } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Invalid email or password.");
+      if (signErr) {
+        setError(signErr.message);
         return;
       }
       router.push("/dashboard");
+      router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -53,7 +65,16 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-        <div className="flex items-center justify-center lg:min-h-0">
+        <div className="relative hidden overflow-hidden bg-gradient-to-br from-primary/15 via-primary-light/40 to-background lg:flex lg:items-center lg:justify-center">
+          <div className="absolute inset-0 opacity-[0.04]" aria-hidden>
+            <div
+              className="h-full w-full"
+              style={{
+                backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
+                backgroundSize: "24px 24px",
+              }}
+            />
+          </div>
           <AuthIllustration />
         </div>
         <main className="flex flex-col justify-center px-6 py-12 lg:px-12">
@@ -64,13 +85,13 @@ export default function LoginPage() {
               </Link>
               <h1 className="mt-8 text-2xl font-bold tracking-tight">Sign in</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Enter your credentials to access your dashboard.
+                Use your Supabase-backed account to open your dashboard.
               </p>
             </div>
-            <Card>
+            <Card className="border-border/80 shadow-lg">
               <CardHeader className="space-y-0 pb-4">
-                <CardTitle className="text-lg">Login</CardTitle>
-                <CardDescription>Use your SmartPass account</CardDescription>
+                <CardTitle className="text-lg">Welcome back</CardTitle>
+                <CardDescription>Email and password</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,7 +109,7 @@ export default function LoginPage() {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-10"
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -99,16 +120,19 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-10"
+                      className="h-11"
                     />
                   </div>
-                  <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                  <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
                     {loading ? "Signing in…" : "Sign in"}
                   </Button>
                 </form>
                 <p className="mt-6 text-center text-sm text-muted-foreground">
                   Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+                  <Link
+                    href="/signup"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
                     Sign up
                   </Link>
                 </p>
@@ -118,5 +142,19 @@ export default function LoginPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+          Loading…
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
