@@ -110,10 +110,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   useEffect(() => {
     fetchDashboardUser()
       .then((u) => {
-        if (!u) router.replace("/login");
+        if (!u) router.replace("/auth?mode=login");
         else setUser(u);
       })
-      .catch(() => router.replace("/login"))
+      .catch(() => router.replace("/auth?mode=login"))
       .finally(() => setLoading(false));
   }, [router]);
 

@@ -11,7 +11,7 @@ export default function PublicVerifyPage() {
             SmartPass
           </Link>
           <Button asChild variant="outline" size="sm">
-            <Link href="/login">Log in</Link>
+            <Link href="/auth">Log in</Link>
           </Button>
         </div>
       </header>
