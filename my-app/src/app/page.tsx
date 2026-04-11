@@ -36,6 +36,12 @@ function NavPill() {
         </Link>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Link
+            href="/verify"
+            className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-white/90 transition-colors hover:text-white sm:min-h-11 sm:px-4 sm:py-2 sm:text-sm"
+          >
+            Verify
+          </Link>
+          <Link
             href="/auth?mode=signup"
             className={cn(
               "inline-flex min-h-10 items-center rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-colors sm:min-h-11 sm:px-4 sm:py-2 sm:text-sm",

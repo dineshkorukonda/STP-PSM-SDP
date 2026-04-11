@@ -63,7 +63,7 @@ export default function VerifyPassPanel({
           <Label htmlFor="verify-qr">Link, QR data, or token</Label>
           <textarea
             id="verify-qr"
-            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[120px] w-full rounded-xl border px-4 py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2"
+            className="flex min-h-[120px] w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus-visible:border-[#6B46FE] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6B46FE]/25"
             placeholder="https://yoursite.com/p/SP-… or  {&quot;v&quot;:1,&quot;t&quot;:&quot;SP-…&quot;}  or  SP-…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
