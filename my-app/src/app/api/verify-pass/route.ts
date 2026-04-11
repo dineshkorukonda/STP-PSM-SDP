@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPassPublicByToken } from "@/lib/pass-public";
+import { apiErrorStatus, isDatabaseConnectivityError } from "@/lib/db/errors";
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +18,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ pass });
   } catch (e) {
     console.error("verify-pass:", e);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    const message = e instanceof Error ? e.message : "Unknown error";
+    const isConfig = message.includes("Missing DATABASE_URL");
+    const connectivity = isDatabaseConnectivityError(e);
+    const status = apiErrorStatus(e, isConfig);
+    const errorText = isConfig
+      ? "Database is not configured."
+      : connectivity
+        ? "Database is temporarily unreachable."
+        : "Something went wrong.";
+    return NextResponse.json(
+      {
+        error: errorText,
+        ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
+      },
+      { status }
+    );
   }
 }

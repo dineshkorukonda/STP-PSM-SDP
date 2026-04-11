@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/pool";
 import { getSessionUserId } from "@/lib/auth/session";
+import { apiErrorStatus, isDatabaseConnectivityError } from "@/lib/db/errors";
 
 export async function GET() {
   try {
@@ -38,17 +39,22 @@ export async function GET() {
     const isDbConfig = message.includes("Missing DATABASE_URL");
     const isAuthConfig = message.includes("AUTH_SECRET");
     const isConfig = isDbConfig || isAuthConfig;
+    const connectivity = isDatabaseConnectivityError(e);
+    const status = apiErrorStatus(e, isConfig);
+    const errorText = isDbConfig
+      ? "Database is not configured."
+      : isAuthConfig
+        ? "AUTH_SECRET is not configured."
+        : connectivity
+          ? "Database is temporarily unreachable."
+          : "Could not load session.";
     return NextResponse.json(
       {
         user: null,
-        error: isDbConfig
-          ? "Database is not configured."
-          : isAuthConfig
-            ? "AUTH_SECRET is not configured."
-            : "Could not load session.",
+        error: errorText,
         ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
       },
-      { status: isConfig ? 503 : 500 }
+      { status }
     );
   }
 }

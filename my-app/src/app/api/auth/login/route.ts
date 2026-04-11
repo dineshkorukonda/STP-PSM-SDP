@@ -3,6 +3,7 @@ import { getPool } from "@/lib/db/pool";
 import { verifyPassword } from "@/lib/auth/password";
 import { signSessionToken } from "@/lib/auth/jwt";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SEC } from "@/lib/auth/constants";
+import { apiErrorStatus, isDatabaseConnectivityError } from "@/lib/db/errors";
 
 export async function POST(request: Request) {
   try {
@@ -62,12 +63,16 @@ export async function POST(request: Request) {
         { status: 503 }
       );
     }
+    const status = apiErrorStatus(e, false);
+    const errMsg = isDatabaseConnectivityError(e)
+      ? "Database is temporarily unreachable."
+      : "Login failed.";
     return NextResponse.json(
       {
-        error: "Login failed.",
+        error: errMsg,
         ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
       },
-      { status: 500 }
+      { status }
     );
   }
 }
