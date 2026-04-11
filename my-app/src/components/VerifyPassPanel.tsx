@@ -53,7 +53,7 @@ export default function VerifyPassPanel({
   };
 
   return (
-    <Card className="border-border/80 shadow-md">
+    <Card className="border-neutral-200 bg-white shadow-md">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -63,7 +63,7 @@ export default function VerifyPassPanel({
           <Label htmlFor="verify-qr">Link, QR data, or token</Label>
           <textarea
             id="verify-qr"
-            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[120px] w-full rounded-xl border px-4 py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2"
             placeholder="https://yoursite.com/p/SP-… or  {&quot;v&quot;:1,&quot;t&quot;:&quot;SP-…&quot;}  or  SP-…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -75,7 +75,12 @@ export default function VerifyPassPanel({
             {error}
           </p>
         )}
-        <Button type="button" className="w-full sm:w-auto" onClick={submit} disabled={loading}>
+        <Button
+          type="button"
+          className="min-h-12 w-full bg-[#6B46FE] text-base text-white hover:bg-[#5b3ad4] sm:w-auto"
+          onClick={submit}
+          disabled={loading}
+        >
           {loading ? (
             <>
               <Loader2 className="mr-2 size-4 animate-spin" />

@@ -29,7 +29,7 @@ function Mark({ className }: { className?: string }) {
 
 function NavPill() {
   return (
-    <header className="pointer-events-none fixed left-0 right-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-4 sm:pt-4">
+    <header className="pointer-events-none fixed left-0 right-0 top-0 z-50 flex justify-center px-3 pt-3 supports-[padding:max(0px)]:pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:pt-4">
       <div className="pointer-events-auto flex w-full max-w-3xl items-center justify-between gap-2 rounded-full bg-neutral-900 px-3 py-2 text-white shadow-md sm:px-4">
         <Link href="/" className="shrink-0 text-sm font-semibold tracking-tight sm:text-base">
           SmartPass
@@ -38,7 +38,7 @@ function NavPill() {
           <Link
             href="/auth?mode=signup"
             className={cn(
-              "inline-flex rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-colors sm:px-4 sm:py-2 sm:text-sm",
+              "inline-flex min-h-10 items-center rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-colors sm:min-h-11 sm:px-4 sm:py-2 sm:text-sm",
               ACCENT
             )}
           >
@@ -46,7 +46,7 @@ function NavPill() {
           </Link>
           <Link
             href="/auth?mode=login"
-            className="whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-white/90 transition-colors hover:text-white sm:px-4 sm:py-2 sm:text-sm"
+            className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-white/90 transition-colors hover:text-white sm:min-h-11 sm:px-4 sm:py-2 sm:text-sm"
           >
             Sign in
           </Link>
@@ -73,7 +73,7 @@ function NotificationMock({
 
 function FeatureVisualPasses() {
   return (
-    <div className="relative flex min-h-[280px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-8 sm:min-h-[320px]">
+    <div className="relative flex min-h-[240px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-6 sm:min-h-[280px] sm:p-8 md:min-h-[320px]">
       <div className="flex w-full max-w-[280px] flex-col gap-3">
         <NotificationMock iconClass="bg-amber-500">
           Pass issued — Metro 7-day, active now
@@ -88,7 +88,7 @@ function FeatureVisualPasses() {
 
 function FeatureVisualQr() {
   return (
-    <div className="relative flex min-h-[280px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-8 sm:min-h-[320px]">
+    <div className="relative flex min-h-[240px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-6 sm:min-h-[280px] sm:p-8 md:min-h-[320px]">
       <div className="rounded-2xl bg-white p-6 shadow-lg">
         <div className="mx-auto grid size-36 place-items-center rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50">
           <QrCode className="size-20 text-neutral-900" strokeWidth={1.25} aria-hidden />
@@ -101,7 +101,7 @@ function FeatureVisualQr() {
 
 function FeatureVisualVerify() {
   return (
-    <div className="relative flex min-h-[280px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-8 sm:min-h-[320px]">
+    <div className="relative flex min-h-[240px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-6 sm:min-h-[280px] sm:p-8 md:min-h-[320px]">
       <div className="flex w-full max-w-[280px] flex-col gap-3">
         <NotificationMock iconClass="bg-emerald-500">Pass verified — OK to board</NotificationMock>
         <NotificationMock iconClass="bg-neutral-600">Staff scan — server-backed result</NotificationMock>
@@ -112,11 +112,11 @@ function FeatureVisualVerify() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
+    <div className="min-h-screen min-h-[100dvh] bg-white text-neutral-900">
       <NavPill />
 
       <main>
-        <section className="mx-auto max-w-5xl px-6 pb-20 pt-32 text-center sm:pb-28 sm:pt-40">
+        <section className="mx-auto max-w-5xl px-4 pb-16 pt-28 text-center sm:px-6 sm:pb-28 sm:pt-40">
           <h1 className="text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl sm:leading-[1.05]">
             One pass for
             <br />
@@ -130,7 +130,7 @@ export default function LandingPage() {
             <Link
               href="/auth?mode=signup"
               className={cn(
-                "inline-flex w-full items-center justify-center rounded-full px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors sm:w-auto",
+                "inline-flex min-h-12 w-full items-center justify-center rounded-full px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors sm:w-auto",
                 ACCENT
               )}
             >
@@ -138,7 +138,7 @@ export default function LandingPage() {
             </Link>
             <a
               href="#features"
-              className="inline-flex w-full items-center justify-center rounded-full border border-neutral-200 bg-white px-8 py-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50 sm:w-auto"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-neutral-200 bg-white px-8 py-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50 sm:w-auto"
             >
               See features
             </a>
@@ -147,7 +147,7 @@ export default function LandingPage() {
 
         <section
           id="features"
-          className="mx-auto max-w-6xl scroll-mt-28 px-6 py-20 sm:scroll-mt-32 sm:py-28"
+          className="mx-auto max-w-6xl scroll-mt-28 px-4 py-16 sm:scroll-mt-32 sm:px-6 sm:py-28"
           aria-labelledby="features-heading"
         >
           <div className="text-center">
@@ -162,7 +162,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-20 grid items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24">
+          <div className="mt-12 grid items-center gap-10 sm:mt-20 md:grid-cols-2 md:gap-16 lg:gap-24">
             <FeatureVisualPasses />
             <div>
               <div className="mb-4 inline-flex size-12 items-center justify-center rounded-2xl bg-neutral-100">
@@ -178,7 +178,7 @@ export default function LandingPage() {
               <Link
                 href="/auth?mode=signup"
                 className={cn(
-                  "mt-8 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
+                  "mt-8 inline-flex min-h-11 items-center rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
                   ACCENT
                 )}
               >
@@ -187,7 +187,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-24 grid items-center gap-12 md:grid-cols-2 md:gap-16 lg:mt-32 lg:gap-24">
+          <div className="mt-16 grid items-center gap-10 sm:mt-24 md:grid-cols-2 md:gap-16 lg:mt-32 lg:gap-24">
             <div className="order-2 md:order-1">
               <div className="mb-4 inline-flex size-12 items-center justify-center rounded-2xl bg-neutral-100">
                 <QrCode className="size-6 text-neutral-900" strokeWidth={1.5} aria-hidden />
@@ -202,7 +202,7 @@ export default function LandingPage() {
               <Link
                 href="/auth?mode=signup"
                 className={cn(
-                  "mt-8 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
+                  "mt-8 inline-flex min-h-11 items-center rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
                   ACCENT
                 )}
               >
@@ -214,7 +214,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-24 grid items-center gap-12 md:grid-cols-2 md:gap-16 lg:mt-32 lg:gap-24">
+          <div className="mt-16 grid items-center gap-10 sm:mt-24 md:grid-cols-2 md:gap-16 lg:mt-32 lg:gap-24">
             <FeatureVisualVerify />
             <div>
               <div className="mb-4 inline-flex size-12 items-center justify-center rounded-2xl bg-neutral-100">
@@ -230,7 +230,7 @@ export default function LandingPage() {
               <Link
                 href="/auth?mode=signup"
                 className={cn(
-                  "mt-8 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
+                  "mt-8 inline-flex min-h-11 items-center rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
                   ACCENT
                 )}
               >
@@ -240,7 +240,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-3xl px-6 py-20 text-center sm:py-28">
+        <section className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-28">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to ship passes?</h2>
           <p className="mt-4 text-neutral-500">
             Create an account and issue your first pass in minutes.
@@ -248,7 +248,7 @@ export default function LandingPage() {
           <Link
             href="/auth?mode=signup"
             className={cn(
-              "mt-10 inline-flex rounded-full px-8 py-3.5 text-sm font-semibold text-white transition-colors",
+              "mt-10 inline-flex min-h-12 items-center justify-center rounded-full px-8 py-3.5 text-sm font-semibold text-white transition-colors",
               ACCENT
             )}
           >
@@ -257,16 +257,16 @@ export default function LandingPage() {
         </section>
 
         <footer className="border-t border-neutral-100 py-10">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 text-sm text-neutral-500 sm:flex-row">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 text-sm text-neutral-500 sm:flex-row sm:px-6">
             <div className="flex items-center gap-2 font-semibold text-neutral-900">
               <Mark className="bg-neutral-900 text-white" />
               SmartPass
             </div>
             <div className="flex flex-wrap items-center justify-center gap-6">
-              <a href="#features" className="hover:text-neutral-900">
+              <a href="#features" className="min-h-10 content-center hover:text-neutral-900">
                 Features
               </a>
-              <Link href="/auth?mode=login" className="hover:text-neutral-900">
+              <Link href="/auth?mode=login" className="min-h-10 content-center hover:text-neutral-900">
                 Sign in
               </Link>
             </div>

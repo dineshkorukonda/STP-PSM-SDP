@@ -47,20 +47,20 @@ export default function PassCard({ pass, className }: PassCardProps) {
   return (
     <Card
       className={cn(
-        "overflow-hidden border-border/80 shadow-md transition-shadow hover:shadow-lg",
+        "overflow-hidden border-neutral-200 bg-white shadow-md transition-shadow hover:shadow-lg",
         isExpired && "opacity-90 ring-2 ring-amber-300/60",
         className
       )}
     >
-      <div className="relative border-b bg-gradient-to-br from-primary to-primary-hover px-6 py-5 text-primary-foreground">
+      <div className="relative border-b border-[#5b3ad4]/30 bg-gradient-to-br from-[#6B46FE] to-[#5b3ad4] px-6 py-5 text-white">
         <div className="absolute right-4 top-4 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm">
           {pass.transportType}
         </div>
-        <p className="text-xs font-medium uppercase tracking-wider text-primary-foreground/85">
+        <p className="text-xs font-medium uppercase tracking-wider text-white/85">
           Digital pass
         </p>
         <p className="mt-1 text-2xl font-bold tracking-tight">{pass.userName}</p>
-        <p className="mt-2 text-sm text-primary-foreground/90">
+        <p className="mt-2 text-sm text-white/90">
           {pass.duration} · Valid through{" "}
           {expiry.toLocaleDateString("en-GB", {
             day: "numeric",
@@ -72,16 +72,16 @@ export default function PassCard({ pass, className }: PassCardProps) {
       <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-3 text-sm">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
               Pass ID
             </p>
-            <p className="mt-0.5 break-all font-mono text-xs font-medium text-foreground">
+            <p className="mt-0.5 break-all font-mono text-xs font-medium text-neutral-900">
               {pass.id}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
                 Starts
               </p>
               <p className="mt-0.5 font-medium">
@@ -93,7 +93,7 @@ export default function PassCard({ pass, className }: PassCardProps) {
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
                 Status
               </p>
               <p className="mt-0.5">
@@ -110,7 +110,7 @@ export default function PassCard({ pass, className }: PassCardProps) {
               </p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-neutral-500">
             The QR opens a public page with holder and validity. You can also paste the link or
             token in Verify.
           </p>
@@ -119,7 +119,7 @@ export default function PassCard({ pass, className }: PassCardProps) {
               type="button"
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-2 border-neutral-200 text-neutral-900 hover:bg-neutral-50"
               onClick={() => void copyLink()}
             >
               {copied ? (
@@ -132,10 +132,10 @@ export default function PassCard({ pass, className }: PassCardProps) {
           ) : null}
         </div>
         <div className="flex flex-shrink-0 flex-col items-center gap-2">
-          <div className="flex size-28 items-center justify-center rounded-2xl border-2 border-border bg-white p-2 shadow-inner dark:bg-zinc-900">
-            <QRCodeSVG value={qrValue} size={96} level="M" includeMargin={false} />
+          <div className="flex size-[7.75rem] items-center justify-center rounded-2xl border-2 border-neutral-200 bg-white p-2 shadow-inner sm:size-28">
+            <QRCodeSVG value={qrValue} size={108} level="M" includeMargin={false} />
           </div>
-          <p className="max-w-[7rem] text-center text-[10px] text-muted-foreground">
+          <p className="max-w-[7rem] text-center text-[10px] text-neutral-500">
             Scan to open pass page
           </p>
         </div>

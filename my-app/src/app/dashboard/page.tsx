@@ -11,33 +11,46 @@ import {
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
 import { PlusCircle, Ticket, QrCode, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const ACCENT = "bg-[#6B46FE] hover:bg-[#5b3ad4] text-white";
 
 export default function DashboardPage() {
   const { user } = useUser();
 
   return (
-    <div className="space-y-10">
-      <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-primary/10 via-card to-card p-8 shadow-sm sm:p-10">
-        <div className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-primary/20 blur-3xl" />
+    <div className="space-y-8 sm:space-y-10">
+      <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+        <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-sky-200/90 blur-2xl sm:-right-24 sm:-top-24 sm:size-72" />
+        <div className="pointer-events-none absolute -bottom-8 -left-8 size-40 rounded-full bg-[#6B46FE]/10 blur-2xl" />
         <div className="relative">
-          <p className="text-sm font-medium text-primary">Dashboard</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+          <p className="text-sm font-semibold text-[#6B46FE]">Dashboard</p>
+          <h1 className="mt-2 text-pretty text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl lg:text-4xl">
             Welcome back{user?.name ? `, ${user.name}` : ""}
           </h1>
-          <p className="mt-3 max-w-xl text-muted-foreground">
-            Create a new digital pass, manage existing ones, or verify a traveller&apos;s QR
-            in seconds—all from one place.
+          <p className="mt-3 max-w-xl text-pretty text-base leading-relaxed text-neutral-500">
+            Create a new digital pass, manage existing ones, or verify a traveller&apos;s QR in
+            seconds—same bold look as the marketing site, tuned for your phone.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="gap-2 shadow-md">
+          <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
+            <Button
+              asChild
+              size="lg"
+              className={cn("min-h-12 w-full gap-2 shadow-md sm:w-auto sm:min-w-[10rem]", ACCENT)}
+            >
               <Link href="/dashboard/create">
-                <PlusCircle className="size-4" />
+                <PlusCircle className="size-5" />
                 Create pass
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="gap-2 bg-background/80">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="min-h-12 w-full gap-2 border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50 sm:w-auto sm:min-w-[10rem]"
+            >
               <Link href="/dashboard/passes">
-                <Ticket className="size-4" />
+                <Ticket className="size-5" />
                 My passes
               </Link>
             </Button>
@@ -45,20 +58,23 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="border-border/80 shadow-sm transition-shadow hover:shadow-md lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Ticket className="size-5 text-primary" />
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+        <Card className="border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg text-neutral-900 sm:text-xl">
+              <Ticket className="size-5 shrink-0 text-[#6B46FE] sm:size-6" />
               Your passes
             </CardTitle>
-            <CardDescription>
-              Each pass gets a unique QR token. Scanning resolves holder and validity on the
-              server—no sensitive data baked into the code.
+            <CardDescription className="text-base leading-relaxed text-neutral-500">
+              Each pass gets a unique QR link. Scanning opens a public page with holder and validity.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button asChild variant="secondary" className="gap-2">
+          <CardContent className="pt-2">
+            <Button
+              asChild
+              variant="secondary"
+              className="min-h-11 w-full gap-2 bg-neutral-100 text-neutral-900 hover:bg-neutral-200 sm:w-auto"
+            >
               <Link href="/dashboard/passes">
                 View all passes
                 <ArrowRight className="size-4" />
@@ -67,18 +83,22 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/80 shadow-sm transition-shadow hover:shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <QrCode className="size-5 text-primary" />
+        <Card className="border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg text-neutral-900 sm:text-xl">
+              <QrCode className="size-5 shrink-0 text-[#6B46FE] sm:size-6" />
               Verify
             </CardTitle>
-            <CardDescription>
-              Operators can paste scanned QR JSON or a raw token to confirm a pass.
+            <CardDescription className="text-base leading-relaxed text-neutral-500">
+              Paste a link or token to confirm a pass—works great on mobile.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full gap-2">
+          <CardContent className="pt-2">
+            <Button
+              asChild
+              variant="outline"
+              className="min-h-11 w-full gap-2 border-neutral-200 text-neutral-900 hover:bg-neutral-50"
+            >
               <Link href="/dashboard/verify">
                 Open verifier
                 <ArrowRight className="size-4" />

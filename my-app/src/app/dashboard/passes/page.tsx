@@ -78,28 +78,31 @@ export default function MyPassesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">My passes</h1>
-        <p className="mt-2 text-muted-foreground">
-          All passes tied to your account. Each QR encodes only a token—verify to see full
-          details.
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900">My passes</h1>
+        <p className="mt-2 text-neutral-500">
+          All passes tied to your account. Each QR opens a public pass page—verify anytime.
         </p>
       </div>
 
       {loading ? (
-        <Card className="border-dashed">
+        <Card className="border border-dashed border-neutral-200 bg-white">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-20">
-            <Loader2 className="size-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Loading passes…</p>
+            <Loader2 className="size-8 animate-spin text-[#6B46FE]" />
+            <p className="text-neutral-500">Loading passes…</p>
           </CardContent>
         </Card>
       ) : passes.length === 0 ? (
-        <Card className="border-dashed border-2 bg-muted/10">
+        <Card className="border-2 border-dashed border-neutral-200 bg-white">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="font-medium text-foreground">No passes yet</p>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            <p className="font-medium text-neutral-900">No passes yet</p>
+            <p className="mt-2 max-w-sm text-sm text-neutral-500">
               Create your first digital pass—it only takes a moment.
             </p>
-            <Button asChild className="mt-8" size="lg">
+            <Button
+              asChild
+              className="mt-8 bg-[#6B46FE] text-white hover:bg-[#5b3ad4]"
+              size="lg"
+            >
               <Link href="/dashboard/create">Create pass</Link>
             </Button>
           </CardContent>

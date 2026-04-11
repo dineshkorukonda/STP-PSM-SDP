@@ -17,6 +17,10 @@
 
 The app uses server-side `pg` only; the browser never sees `DATABASE_URL`.
 
+### Remote database
+
+Use your provider’s **`DATABASE_URL`**. Many hosts require TLS (`sslmode=require` in the URL). If needed, set **`DATABASE_SSL=true`** in `.env.local` (see **`.env.local.example`**). Tune **`DATABASE_POOL_MAX`** under load.
+
 ### `permission denied for table …`
 
 Usually the user in `DATABASE_URL` is not the same role that created the tables. Either:

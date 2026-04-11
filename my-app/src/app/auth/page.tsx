@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+const ACCENT = "bg-[#6B46FE] hover:bg-[#5b3ad4]";
 
 type Mode = "login" | "signup";
 
@@ -21,7 +24,6 @@ function AuthContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,7 +33,6 @@ function AuthContent() {
 
   useEffect(() => {
     setError("");
-    setInfo("");
   }, [mode]);
 
   const setLogin = () => {
@@ -47,7 +48,6 @@ function AuthContent() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setInfo("");
 
     if (!email.trim()) {
       setError("Email is required.");
@@ -116,15 +116,32 @@ function AuthContent() {
   };
 
   const inputClass = cn(
-    "w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900",
+    "min-h-12 w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-base text-neutral-900",
     "placeholder:text-neutral-400",
     "outline-none transition-[color,box-shadow,border-color]",
-    "focus-visible:border-neutral-900 focus-visible:ring-1 focus-visible:ring-neutral-900"
+    "focus-visible:border-[#6B46FE] focus-visible:ring-2 focus-visible:ring-[#6B46FE]/25"
   );
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
-      <main className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
+    <div className="min-h-screen min-h-[100dvh] bg-white text-neutral-900 supports-[padding:max(0px)]:pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-10 border-b border-neutral-100 bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-neutral-900 transition-colors hover:text-[#6B46FE]"
+          >
+            ← SmartPass
+          </Link>
+          <Link
+            href="/"
+            className="text-sm font-medium text-neutral-500 hover:text-neutral-900"
+          >
+            Home
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-6xl flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-16">
         <div className="w-full max-w-[400px]">
           <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">
             {mode === "login" ? "Sign in to your account" : "Create your account"}
@@ -140,7 +157,7 @@ function AuthContent() {
               type="button"
               onClick={setLogin}
               className={cn(
-                "rounded-lg border px-5 py-2.5 text-sm font-semibold transition-colors",
+                "min-h-11 rounded-lg border px-5 py-2.5 text-sm font-semibold transition-colors",
                 mode === "login"
                   ? "border-neutral-900 bg-neutral-900 text-white"
                   : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:text-neutral-900"
@@ -152,9 +169,9 @@ function AuthContent() {
               type="button"
               onClick={setSignup}
               className={cn(
-                "rounded-lg border px-5 py-2.5 text-sm font-semibold transition-colors",
+                "min-h-11 rounded-lg border px-5 py-2.5 text-sm font-semibold transition-colors",
                 mode === "signup"
-                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  ? "border-[#6B46FE] bg-[#6B46FE] text-white"
                   : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:text-neutral-900"
               )}
             >
@@ -166,11 +183,6 @@ function AuthContent() {
             {error ? (
               <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {error}
-              </p>
-            ) : null}
-            {info ? (
-              <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600">
-                {info}
               </p>
             ) : null}
 
@@ -200,6 +212,7 @@ function AuthContent() {
                 id="auth-email"
                 name="email"
                 type="email"
+                inputMode="email"
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -228,8 +241,8 @@ function AuthContent() {
               type="submit"
               disabled={loading}
               className={cn(
-                "mt-2 w-full rounded-lg bg-neutral-900 py-3 text-sm font-semibold text-white",
-                "transition-colors hover:bg-neutral-800",
+                "mt-2 flex min-h-12 w-full items-center justify-center rounded-lg text-sm font-semibold text-white transition-colors",
+                ACCENT,
                 "disabled:cursor-not-allowed disabled:opacity-50"
               )}
             >
@@ -252,7 +265,7 @@ export default function AuthPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-white text-sm text-neutral-500">
+        <div className="flex min-h-[100dvh] items-center justify-center bg-white text-sm text-neutral-500">
           Loading…
         </div>
       }

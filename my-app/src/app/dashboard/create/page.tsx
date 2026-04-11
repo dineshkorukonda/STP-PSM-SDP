@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const TRANSPORT_OPTIONS: TransportType[] = [
   "Bus",
@@ -96,21 +97,23 @@ export default function CreatePassPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Create pass</h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Create pass</h1>
+        <p className="mt-2 max-w-2xl text-neutral-500">
           Choose transport and duration. We&apos;ll issue a pass with a secure QR token—full
           details load when the code is verified.
         </p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <Card className="border-border/80 shadow-md">
+        <Card className="border-neutral-200 bg-white shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="size-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-neutral-900">
+              <Sparkles className="size-5 text-[#6B46FE]" />
               New pass
             </CardTitle>
-            <CardDescription>Options apply immediately after you submit.</CardDescription>
+            <CardDescription className="text-neutral-500">
+              Options apply immediately after you submit.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -150,8 +153,16 @@ export default function CreatePassPage() {
                   </SelectContent>
                 </Select>
               </div>
-              {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" className="w-full h-11" size="lg" disabled={creating}>
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              <Button
+                type="submit"
+                className={cn(
+                  "h-12 w-full bg-[#6B46FE] text-white hover:bg-[#5b3ad4]",
+                  creating && "opacity-80"
+                )}
+                size="lg"
+                disabled={creating}
+              >
                 {creating ? "Creating…" : "Create pass"}
               </Button>
             </form>
@@ -159,12 +170,12 @@ export default function CreatePassPage() {
         </Card>
 
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Preview</h2>
+          <h2 className="text-lg font-semibold text-neutral-900">Preview</h2>
           {createdPass ? (
             <PassCard pass={createdPass} />
           ) : (
-            <Card className="flex min-h-[280px] items-center justify-center border-dashed border-2 bg-muted/20">
-              <CardContent className="py-12 text-center text-muted-foreground">
+            <Card className="flex min-h-[280px] items-center justify-center border-2 border-dashed border-neutral-200 bg-white">
+              <CardContent className="py-12 text-center text-neutral-500">
                 Your new pass and QR will show here after you create it.
               </CardContent>
             </Card>

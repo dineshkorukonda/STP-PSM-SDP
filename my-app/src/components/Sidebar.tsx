@@ -2,26 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, PlusCircle, Ticket, QrCode, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-type Section = "dashboard" | "create" | "passes" | "verify";
-
-const navItems: {
-  id: Section;
-  label: string;
-  href: string;
-  icon: typeof LayoutDashboard;
-}[] = [
-  { id: "dashboard", label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { id: "create", label: "Create pass", href: "/dashboard/create", icon: PlusCircle },
-  { id: "passes", label: "My passes", href: "/dashboard/passes", icon: Ticket },
-  { id: "verify", label: "Verify QR", href: "/dashboard/verify", icon: QrCode },
-];
+import { dashboardNavItems, type DashboardSection } from "@/lib/dashboard-nav";
 
 interface SidebarProps {
-  activeSection: Section;
+  activeSection: DashboardSection;
   onNavigate?: () => void;
   mobile?: boolean;
 }
@@ -42,17 +29,17 @@ export default function Sidebar({
 
   const navContent = (
     <>
-      <div className="flex h-16 items-center border-b border-sidebar-border px-5">
+      <div className="flex h-16 items-center border-b border-white/10 px-5">
         <Link
           href="/dashboard"
-          className="text-lg font-bold tracking-tight text-sidebar-primary"
+          className="text-lg font-bold tracking-tight text-white"
           onClick={onNavigate}
         >
           SmartPass
         </Link>
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 p-3">
-        {navItems.map((item) => {
+        {dashboardNavItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             activeSection === item.id ||
@@ -63,13 +50,13 @@ export default function Sidebar({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex min-h-12 items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  ? "bg-[#6B46FE] text-white shadow-md"
+                  : "text-neutral-300 hover:bg-white/10 hover:text-white"
               )}
             >
-              <Icon className="size-4 shrink-0 opacity-90" aria-hidden />
+              <Icon className="size-5 shrink-0 opacity-90" aria-hidden />
               {item.label}
             </Link>
           );
@@ -77,10 +64,10 @@ export default function Sidebar({
         <Button
           type="button"
           variant="ghost"
-          className="mt-auto min-h-11 justify-start gap-3 px-3 text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive"
+          className="mt-auto min-h-12 justify-start gap-3 rounded-xl px-3 text-neutral-400 hover:bg-red-500/10 hover:text-red-300"
           onClick={handleLogout}
         >
-          <LogOut className="size-4" aria-hidden />
+          <LogOut className="size-5" aria-hidden />
           Log out
         </Button>
       </nav>
@@ -88,8 +75,8 @@ export default function Sidebar({
   );
 
   const asideClass = mobile
-    ? "flex w-72 flex-shrink-0 flex-col bg-sidebar"
-    : "flex w-60 flex-shrink-0 flex-col border-r border-sidebar-border bg-sidebar";
+    ? "flex h-full min-h-0 w-72 shrink-0 flex-col bg-neutral-900"
+    : "flex h-full min-h-0 w-60 shrink-0 flex-col border-r border-white/10 bg-neutral-900";
 
   return <aside className={asideClass}>{navContent}</aside>;
 }

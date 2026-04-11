@@ -2,78 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { LogOut } from "lucide-react";
 import Sidebar from "./Sidebar";
+import MobileBottomNav from "./MobileBottomNav";
 import { UserProvider } from "@/contexts/UserContext";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { User } from "@/types";
-
-type Section = "dashboard" | "create" | "passes" | "verify";
-
-function getSection(pathname: string): Section {
-  if (pathname.startsWith("/dashboard/create")) return "create";
-  if (pathname.startsWith("/dashboard/passes")) return "passes";
-  if (pathname.startsWith("/dashboard/verify")) return "verify";
-  return "dashboard";
-}
+import { dashboardSectionFromPath } from "@/lib/dashboard-nav";
 
 function DashboardShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const section = getSection(pathname);
+  const router = useRouter();
+  const section = dashboardSectionFromPath(pathname);
 
-  useEffect(() => {
-    queueMicrotask(() => setMobileMenuOpen(false));
-  }, [pathname]);
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    router.push("/");
+    router.refresh();
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background md:flex-row">
-      <div className="hidden md:block">
+    <div className="flex min-h-[100dvh] flex-col bg-neutral-50 text-neutral-900 md:h-screen md:max-h-screen md:flex-row md:overflow-hidden">
+      <div className="hidden md:flex md:h-full md:shrink-0">
         <Sidebar activeSection={section} mobile={false} />
       </div>
 
-      {mobileMenuOpen && (
-        <button
-          type="button"
-          aria-label="Close menu"
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 transform border-r border-border bg-sidebar shadow-xl transition-transform duration-200 ease-out md:hidden",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <Sidebar
-          activeSection={section}
-          mobile
-          onNavigate={() => setMobileMenuOpen(false)}
-        />
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur-md md:hidden">
-          <button
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col md:overflow-hidden">
+        <header className="sticky top-0 z-30 flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-neutral-800 bg-neutral-900 px-4 py-2 text-white backdrop-blur-md supports-[padding:max(0px)]:pt-[max(0.5rem,env(safe-area-inset-top))] md:hidden">
+          <Link href="/dashboard" className="truncate text-lg font-bold text-white">
+            SmartPass
+          </Link>
+          <Button
             type="button"
-            aria-label="Open menu"
-            className="flex size-10 shrink-0 items-center justify-center rounded-lg text-foreground hover:bg-accent"
-            onClick={() => setMobileMenuOpen(true)}
+            variant="ghost"
+            size="icon"
+            className="size-11 shrink-0 rounded-xl text-white/80 hover:bg-white/10 hover:text-white"
+            onClick={() => void logout()}
+            aria-label="Log out"
           >
-            <span className="flex flex-col gap-1.5">
-              <span className="block h-0.5 w-5 rounded-full bg-current" />
-              <span className="block h-0.5 w-5 rounded-full bg-current" />
-              <span className="block h-0.5 w-4 rounded-full bg-current" />
-            </span>
-          </button>
-          <span className="truncate text-lg font-bold text-primary">SmartPass</span>
+            <LogOut className="size-5" />
+          </Button>
         </header>
 
-        <main className="flex-1 overflow-auto">
-          <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">{children}</div>
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-0">
+          <div className="w-full max-w-none p-4 sm:p-6 lg:p-8 xl:px-10 2xl:px-12">
+            {children}
+          </div>
         </main>
       </div>
+
+      <MobileBottomNav />
     </div>
   );
 }
@@ -102,9 +81,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
-        <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
+      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center gap-3 bg-neutral-50 px-4 text-neutral-900">
+        <div className="size-9 animate-spin rounded-full border-2 border-[#6B46FE] border-t-transparent" />
+        <p className="text-center text-sm text-neutral-500">Loading your dashboard…</p>
       </div>
     );
   }
