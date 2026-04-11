@@ -20,7 +20,10 @@ type UserContextValue = {
 const UserContext = createContext<UserContextValue | null>(null);
 
 async function loadUserFromSession(): Promise<User | null> {
-  const res = await fetch("/api/auth/me", { credentials: "include" });
+  const res = await fetch("/api/auth/me", {
+    credentials: "include",
+    cache: "no-store",
+  });
   if (!res.ok) return null;
   const data = (await res.json()) as { user: User | null };
   return data.user;

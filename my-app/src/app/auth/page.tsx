@@ -103,6 +103,15 @@ function AuthContent() {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
+        if (res.status === 409) {
+          setError(
+            data.error ??
+              "An account with this email already exists. Use Sign in instead."
+          );
+          setMode("login");
+          router.replace("/auth?mode=login", { scroll: false });
+          return;
+        }
         setError(data.error ?? "Could not create an account.");
         return;
       }

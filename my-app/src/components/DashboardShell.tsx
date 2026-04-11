@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
@@ -57,83 +56,15 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-type MeResult =
-  | { kind: "ok"; user: User | null }
-  | { kind: "error"; message: string; status: number };
-
-async function fetchDashboardUser(): Promise<MeResult> {
-  const res = await fetch("/api/auth/me", { credentials: "include" });
-  if (res.ok) {
-    const data = (await res.json()) as { user: User | null };
-    return { kind: "ok", user: data.user };
-  }
-  let message = "Could not reach the server.";
-  try {
-    const data = (await res.json()) as { error?: string };
-    if (data.error) message = data.error;
-  } catch {
-    /* ignore */
-  }
-  return { kind: "error", message, status: res.status };
-}
-
-export default function DashboardShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [serviceError, setServiceError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchDashboardUser()
-      .then((r) => {
-        if (r.kind === "error") {
-          if (r.status >= 500) {
-            setServiceError(r.message);
-            return;
-          }
-          router.replace("/auth?mode=login");
-          return;
-        }
-        if (!r.user) router.replace("/auth?mode=login");
-        else setUser(r.user);
-      })
-      .catch(() => router.replace("/auth?mode=login"))
-      .finally(() => setLoading(false));
-  }, [router]);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center gap-3 bg-neutral-50 px-4 text-neutral-900">
-        <div className="size-9 animate-spin rounded-full border-2 border-[#6B46FE] border-t-transparent" />
-        <p className="text-center text-sm text-neutral-500">Loading your dashboard…</p>
-      </div>
-    );
-  }
-
-  if (serviceError) {
-    return (
-      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center gap-4 bg-neutral-50 px-6 text-center text-neutral-900">
-        <p className="max-w-md text-sm text-neutral-600">{serviceError}</p>
-        <p className="max-w-md text-xs text-neutral-500">
-          If you just deployed, confirm DATABASE_URL, AUTH_SECRET (32+ characters), and SSL settings
-          on your host. Check server logs for the exact error.
-        </p>
-        <Link
-          href="/"
-          className="text-sm font-semibold text-[#6B46FE] underline-offset-4 hover:underline"
-        >
-          Back to home
-        </Link>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
+export default function DashboardShell({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode;
+  initialUser: User;
+}) {
   return (
-    <UserProvider initialUser={user}>
+    <UserProvider initialUser={initialUser}>
       <DashboardShellInner>{children}</DashboardShellInner>
     </UserProvider>
   );
