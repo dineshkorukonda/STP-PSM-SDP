@@ -9,7 +9,6 @@ import {
   useMemo,
 } from "react";
 import type { User } from "@/types";
-import { createClient } from "@/lib/supabase/client";
 
 type UserContextValue = {
   user: User | null;
@@ -21,30 +20,10 @@ type UserContextValue = {
 const UserContext = createContext<UserContextValue | null>(null);
 
 async function loadUserFromSession(): Promise<User | null> {
-  const supabase = createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-  if (!authUser?.email) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", authUser.id)
-    .maybeSingle();
-
-  const name =
-    profile?.display_name?.trim() ||
-    authUser.user_metadata?.full_name ||
-    authUser.user_metadata?.name ||
-    authUser.email.split("@")[0] ||
-    "";
-
-  return {
-    id: authUser.id,
-    name,
-    email: authUser.email,
-  };
+  const res = await fetch("/api/auth/me", { credentials: "include" });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { user: User | null };
+  return data.user;
 }
 
 export function UserProvider({
@@ -72,7 +51,6 @@ export function UserProvider({
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
     if (!initialUser) {
       void loadUserFromSession().then((u) => {
         setUser(u);
@@ -80,13 +58,11 @@ export function UserProvider({
       });
     }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    const onFocus = () => {
       void loadUserFromSession().then(setUser);
-    });
-
-    return () => subscription.unsubscribe();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, [initialUser]);
 
   const value = useMemo(

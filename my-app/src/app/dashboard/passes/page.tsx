@@ -4,11 +4,22 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import PassCard from "@/components/PassCard";
 import { useUser } from "@/contexts/UserContext";
-import { createClient } from "@/lib/supabase/client";
 import type { TransportPass, TransportType, Duration } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+
+type PassRow = {
+  id: string;
+  user_id: string;
+  pass_type: string | null;
+  duration_type: string | null;
+  start_date: string | null;
+  expiry_date: string | null;
+  status: string | null;
+  qr_token: string;
+  created_at: string;
+};
 
 export default function MyPassesPage() {
   const [passes, setPasses] = useState<TransportPass[]>([]);
@@ -25,40 +36,37 @@ export default function MyPassesPage() {
         return;
       }
       setLoading(true);
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("passes")
-        .select(
-          "id, user_id, pass_type, duration_type, start_date, expiry_date, status, qr_token, created_at"
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
+      const res = await fetch("/api/passes", { credentials: "include" });
       if (cancelled) return;
 
-      if (error || !data) {
+      if (!res.ok) {
         setPasses([]);
-      } else {
-        const mapped: TransportPass[] = data.map((row) => ({
-          id: String(row.id),
-          userId: String(row.user_id),
-          userName: user.name,
-          transportType: row.pass_type as TransportType,
-          duration: row.duration_type as Duration,
-          startDate: row.start_date
-            ? String(row.start_date).slice(0, 10)
-            : "",
-          expiryDate: row.expiry_date
-            ? String(row.expiry_date).slice(0, 10)
-            : "",
-          createdAt: row.created_at
-            ? new Date(String(row.created_at)).toISOString()
-            : "",
-          qrToken: String(row.qr_token ?? ""),
-          status: String(row.status ?? "active"),
-        }));
-        setPasses(mapped);
+        setLoading(false);
+        return;
       }
+
+      const json = (await res.json()) as { passes?: PassRow[] };
+      const data = json.passes ?? [];
+
+      const mapped: TransportPass[] = data.map((row) => ({
+        id: String(row.id),
+        userId: String(row.user_id),
+        userName: user.name,
+        transportType: row.pass_type as TransportType,
+        duration: row.duration_type as Duration,
+        startDate: row.start_date
+          ? String(row.start_date).slice(0, 10)
+          : "",
+        expiryDate: row.expiry_date
+          ? String(row.expiry_date).slice(0, 10)
+          : "",
+        createdAt: row.created_at
+          ? new Date(String(row.created_at)).toISOString()
+          : "",
+        qrToken: String(row.qr_token ?? ""),
+        status: String(row.status ?? "active"),
+      }));
+      setPasses(mapped);
       setLoading(false);
     })();
 

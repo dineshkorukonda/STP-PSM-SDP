@@ -1,9 +1,11 @@
 /**
- * Supabase public schema (see supabase/migrations/001_smartpass_supabase.sql).
+ * Postgres schema (see db/schema.sql).
  */
 
-export interface DbProfile {
+export interface DbUser {
   id: string;
+  email: string;
+  password_hash: string;
   display_name: string | null;
   created_at: string;
   updated_at: string;

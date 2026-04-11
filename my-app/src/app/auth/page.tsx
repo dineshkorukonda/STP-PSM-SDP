@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type Mode = "login" | "signup";
@@ -24,17 +23,10 @@ function AuthContent() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
-  const [forgotLoading, setForgotLoading] = useState(false);
 
   useEffect(() => {
     const m = searchParams.get("mode") === "signup" ? "signup" : "login";
     setMode(m);
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (searchParams.get("error") === "auth") {
-      setError("That sign-in link expired or is invalid. Try again.");
-    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -50,31 +42,6 @@ function AuthContent() {
   const setSignup = () => {
     setMode("signup");
     router.replace("/auth?mode=signup", { scroll: false });
-  };
-
-  const onForgotPassword = async () => {
-    setError("");
-    setInfo("");
-    if (!email.trim()) {
-      setError("Enter your email, then try again.");
-      return;
-    }
-    setForgotLoading(true);
-    try {
-      const supabase = createClient();
-      const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      });
-      if (err) {
-        setError(err.message);
-        return;
-      }
-      setInfo("Check your email for a reset link.");
-    } catch (e) {
-      setError(authErrorMessage(e));
-    } finally {
-      setForgotLoading(false);
-    }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -104,14 +71,19 @@ function AuthContent() {
 
     setLoading(true);
     try {
-      const supabase = createClient();
       if (mode === "login") {
-        const { error: err } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password,
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            password,
+          }),
         });
-        if (err) {
-          setError(err.message);
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok) {
+          setError(data.error ?? "Sign in failed.");
           return;
         }
         router.push("/dashboard");
@@ -119,28 +91,23 @@ function AuthContent() {
         return;
       }
 
-      const { data, error: err } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: { full_name: name.trim(), name: name.trim() },
-        },
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+          name: name.trim(),
+        }),
       });
-      if (err) {
-        setError(err.message);
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? "Could not create an account.");
         return;
       }
-      if (!data.user) {
-        setError("Could not create an account. Try again or sign in if you already registered.");
-        return;
-      }
-      if (data.session) {
-        router.push("/dashboard");
-        router.refresh();
-        return;
-      }
-      setInfo("Check your email to confirm, then sign in.");
+      router.push("/dashboard");
+      router.refresh();
     } catch (e) {
       setError(authErrorMessage(e));
     } finally {
@@ -255,18 +222,6 @@ function AuthContent() {
                 className={inputClass}
                 placeholder="Password"
               />
-              {mode === "login" ? (
-                <div className="mt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={onForgotPassword}
-                    disabled={forgotLoading}
-                    className="text-sm text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline disabled:opacity-50"
-                  >
-                    {forgotLoading ? "Sending…" : "Forgot password?"}
-                  </button>
-                </div>
-              ) : null}
             </div>
 
             <button

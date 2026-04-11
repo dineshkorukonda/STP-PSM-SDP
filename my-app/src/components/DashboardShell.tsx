@@ -6,7 +6,6 @@ import Sidebar from "./Sidebar";
 import { UserProvider } from "@/contexts/UserContext";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types";
-import { createClient } from "@/lib/supabase/client";
 
 type Section = "dashboard" | "create" | "passes" | "verify";
 
@@ -80,26 +79,10 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
 }
 
 async function fetchDashboardUser(): Promise<User | null> {
-  const supabase = createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-  if (!authUser?.email) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", authUser.id)
-    .maybeSingle();
-
-  const name =
-    profile?.display_name?.trim() ||
-    authUser.user_metadata?.full_name ||
-    authUser.user_metadata?.name ||
-    authUser.email.split("@")[0] ||
-    "";
-
-  return { id: authUser.id, name, email: authUser.email };
+  const res = await fetch("/api/auth/me", { credentials: "include" });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { user: User | null };
+  return data.user;
 }
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {

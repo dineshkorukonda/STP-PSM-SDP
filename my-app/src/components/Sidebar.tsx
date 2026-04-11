@@ -35,8 +35,7 @@ export default function Sidebar({
   const router = useRouter();
 
   const handleLogout = async () => {
-    const { createClient } = await import("@/lib/supabase/client");
-    await createClient().auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     router.push("/");
     router.refresh();
   };

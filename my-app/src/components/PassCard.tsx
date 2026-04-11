@@ -1,27 +1,48 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import type { TransportPass } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { QrPayload } from "@/types";
+import { usePublicAppBaseUrl } from "@/lib/use-public-app-base-url";
+import { Check, Link2 } from "lucide-react";
 
 interface PassCardProps {
   pass: TransportPass;
   className?: string;
 }
 
-function qrEncode(payload: QrPayload): string {
-  return JSON.stringify(payload);
-}
-
 export default function PassCard({ pass, className }: PassCardProps) {
+  const baseUrl = usePublicAppBaseUrl();
+  const [copied, setCopied] = useState(false);
+
+  const verifyUrl = useMemo(() => {
+    if (!baseUrl) return "";
+    return `${baseUrl}/p/${encodeURIComponent(pass.qrToken)}`;
+  }, [baseUrl, pass.qrToken]);
+
+  const qrValue =
+    verifyUrl.length > 0
+      ? verifyUrl
+      : JSON.stringify({ v: 1, t: pass.qrToken });
+
   const expiry = new Date(pass.expiryDate);
   const start = new Date(pass.startDate);
   const isExpired = expiry < new Date(new Date().toDateString());
   const isActive = pass.status === "active" && !isExpired;
 
-  const qrValue = qrEncode({ v: 1, t: pass.qrToken });
+  const copyLink = async () => {
+    if (!verifyUrl) return;
+    try {
+      await navigator.clipboard.writeText(verifyUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* ignore */
+    }
+  };
 
   return (
     <Card
@@ -90,16 +111,32 @@ export default function PassCard({ pass, className }: PassCardProps) {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Scanning the code looks up this pass server-side—no personal data is
-            stored in the QR itself beyond a secure token.
+            The QR opens a public page with holder and validity. You can also paste the link or
+            token in Verify.
           </p>
+          {verifyUrl ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => void copyLink()}
+            >
+              {copied ? (
+                <Check className="size-4" aria-hidden />
+              ) : (
+                <Link2 className="size-4" aria-hidden />
+              )}
+              {copied ? "Copied" : "Copy verify link"}
+            </Button>
+          ) : null}
         </div>
         <div className="flex flex-shrink-0 flex-col items-center gap-2">
           <div className="flex size-28 items-center justify-center rounded-2xl border-2 border-border bg-white p-2 shadow-inner dark:bg-zinc-900">
             <QRCodeSVG value={qrValue} size={96} level="M" includeMargin={false} />
           </div>
           <p className="max-w-[7rem] text-center text-[10px] text-muted-foreground">
-            Show at gates & validators
+            Scan to open pass page
           </p>
         </div>
       </CardContent>

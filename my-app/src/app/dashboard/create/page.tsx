@@ -4,12 +4,6 @@ import { useState } from "react";
 import type { TransportType, Duration, TransportPass } from "@/types";
 import PassCard from "@/components/PassCard";
 import { useUser } from "@/contexts/UserContext";
-import { createClient } from "@/lib/supabase/client";
-import {
-  computeExpiryDate,
-  formatDateISO,
-  generateQrToken,
-} from "@/lib/pass-utils";
 import {
   Card,
   CardContent,
@@ -36,6 +30,18 @@ const TRANSPORT_OPTIONS: TransportType[] = [
 ];
 const DURATION_OPTIONS: Duration[] = ["Daily", "Weekly", "Monthly"];
 
+type InsertedPass = {
+  id: string;
+  user_id: string;
+  pass_type: string | null;
+  duration_type: string | null;
+  start_date: string | null;
+  expiry_date: string | null;
+  status: string | null;
+  qr_token: string;
+  created_at: string;
+};
+
 export default function CreatePassPage() {
   const [transportType, setTransportType] = useState<TransportType>("Bus");
   const [duration, setDuration] = useState<Duration>("Monthly");
@@ -51,52 +57,28 @@ export default function CreatePassPage() {
     setError("");
     setCreating(true);
     try {
-      const supabase = createClient();
-      const { start, expiry } = computeExpiryDate(duration);
-      const startDateStr = formatDateISO(start);
-      const expiryDateStr = formatDateISO(expiry);
-      const qrToken = generateQrToken();
+      const res = await fetch("/api/passes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ transportType, duration }),
+      });
+      const data = (await res.json()) as { error?: string; pass?: InsertedPass };
 
-      const { data: inserted, error: insertErr } = await supabase
-        .from("passes")
-        .insert({
-          user_id: user.id,
-          pass_type: transportType,
-          duration_type: duration,
-          start_date: startDateStr,
-          expiry_date: expiryDateStr,
-          status: "active",
-          qr_token: qrToken,
-        })
-        .select("id, user_id, pass_type, duration_type, start_date, expiry_date, status, qr_token, created_at")
-        .single();
-
-      if (insertErr || !inserted) {
-        setError(insertErr?.message ?? "Failed to create pass.");
+      if (!res.ok || !data.pass) {
+        setError(data.error ?? "Failed to create pass.");
         return;
       }
 
-      const { data: tt } = await supabase
-        .from("transport_types")
-        .select("id")
-        .eq("name", transportType)
-        .maybeSingle();
-
-      if (tt?.id != null) {
-        await supabase.from("pass_transport_map").insert({
-          pass_id: inserted.id,
-          transport_type_id: tt.id,
-        });
-      }
-
+      const inserted = data.pass;
       const pass: TransportPass = {
         id: String(inserted.id),
         userId: String(inserted.user_id),
         userName: user.name,
         transportType: inserted.pass_type as TransportType,
         duration: inserted.duration_type as Duration,
-        startDate: String(inserted.start_date ?? startDateStr).slice(0, 10),
-        expiryDate: String(inserted.expiry_date ?? expiryDateStr).slice(0, 10),
+        startDate: String(inserted.start_date ?? "").slice(0, 10),
+        expiryDate: String(inserted.expiry_date ?? "").slice(0, 10),
         createdAt: inserted.created_at
           ? new Date(String(inserted.created_at)).toISOString()
           : new Date().toISOString(),

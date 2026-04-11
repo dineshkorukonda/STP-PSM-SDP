@@ -26,7 +26,7 @@ export interface QrPayload {
   t: string;
 }
 
-/** Result of public.get_pass_public RPC */
+/** Result of get_pass_public() in Postgres */
 export interface VerifiedPassDetails {
   id: string;
   passType: string;

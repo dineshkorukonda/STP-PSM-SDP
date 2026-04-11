@@ -2,29 +2,15 @@
 
 import { useState } from "react";
 import type { VerifiedPassDetails } from "@/types";
+import { extractTokenFromQrInput } from "@/lib/parse-qr-input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
-function parseQrInput(raw: string): string | null {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  try {
-    const parsed = JSON.parse(trimmed) as { v?: number; t?: string };
-    if (parsed && typeof parsed.t === "string" && parsed.t.length > 0) {
-      return parsed.t.trim();
-    }
-  } catch {
-    /* plain token */
-  }
-  if (trimmed.startsWith("SP-")) return trimmed;
-  return trimmed.length >= 8 ? trimmed : null;
-}
-
 export default function VerifyPassPanel({
   title = "Verify a pass",
-  description = "Paste a scanned QR string or enter the pass token (e.g. SP-…). Details are loaded securely from the server.",
+  description = "Paste a scanned link, QR JSON, or raw token (e.g. SP-…). Details are loaded from the server.",
 }: {
   title?: string;
   description?: string;
@@ -37,9 +23,9 @@ export default function VerifyPassPanel({
   const submit = async () => {
     setError("");
     setResult(null);
-    const token = parseQrInput(input);
+    const token = extractTokenFromQrInput(input);
     if (!token) {
-      setError("Enter a valid QR payload or token.");
+      setError("Enter a valid pass link, QR payload, or token (at least 8 characters).");
       return;
     }
     setLoading(true);
@@ -74,11 +60,11 @@ export default function VerifyPassPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="verify-qr">QR data or token</Label>
+          <Label htmlFor="verify-qr">Link, QR data, or token</Label>
           <textarea
             id="verify-qr"
             className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            placeholder='{"v":1,"t":"SP-…"} or paste raw token'
+            placeholder="https://yoursite.com/p/SP-… or  {&quot;v&quot;:1,&quot;t&quot;:&quot;SP-…&quot;}  or  SP-…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />

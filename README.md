@@ -1,34 +1,24 @@
 # STP-PSM-SDP
 
-Monorepo for the SmartPass-style Next.js app under **`my-app/`**.
+Monorepo for the SmartPass-style Next.js app in `**my-app/**`.
 
-## Local database (Supabase)
+## Local database and auth
 
-The UI uses the **Supabase client** (`@supabase/supabase-js`), which talks to Supabase’s **HTTP API and Auth**, not a raw Postgres URL. For local work, run the **full Supabase stack** (Postgres + PostgREST + Auth, etc.), not only a standalone Postgres instance.
-
-### Prerequisites
-
-- [Docker Desktop](https://docs.docker.com/desktop) running (the Supabase CLI starts services via Docker).
+The app uses **PostgreSQL** directly (via `pg` on the server) and **cookie sessions** signed with `AUTH_SECRET` (no Supabase, no Docker required for the DB layer).
 
 ### Setup
 
-From **`my-app/`**:
+1. Install and start PostgreSQL. Set `**DATABASE_URL`** to a user that exists in your cluster (on many Mac/Homebrew installs the user is your macOS login, not `postgres`; see `my-app/.env.local.example`).
+2. From `**my-app/`**, apply the schema:
+  ```bash
+   psql "postgresql://postgres:postgres@localhost:5432/postgres" -f db/schema.sql
+  ```
+3. Copy `**my-app/.env.local.example**` to `**my-app/.env.local**`. Set `**DATABASE_URL**` and a long random `**AUTH_SECRET**` (at least 32 characters).
+4. Run the app:
+  ```bash
+   cd my-app && npm run dev
+  ```
 
-1. **Start Supabase** — `npm run db:start`  
-   - API: `http://127.0.0.1:54321`  
-   - Postgres: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`  
-   - Studio: `http://127.0.0.1:54323`
+Sign up creates a user with a **bcrypt** password hash; sign in sets an **httpOnly** session cookie.
 
-2. **Apply schema** — `npm run db:reset` (runs `supabase/migrations` and `seed.sql`).
-
-3. **Environment** — copy `my-app/.env.local.example` to `my-app/.env.local`, or run `npm run db:status` and paste the printed API URL and anon key.
-
-4. **Run the app** — `npm run dev` (in `my-app/`).
-
-Other useful scripts: `npm run db:stop`, `npm run db:status`.
-
-More detail: **[my-app/supabase/README.md](my-app/supabase/README.md)**.
-
-## Hosted Supabase
-
-You can point `my-app/.env.local` at a cloud project instead; see the same Supabase README for required variables and redirect URLs.
+More detail: **[my-app/db/README.md](my-app/db/README.md)**.
