@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Verify a pass · SmartPass",
   description:
-    "Check a SmartPass without signing in. Paste a link, QR payload, or token.",
+    "Check a SmartPass without signing in. Scan the pass QR with your camera or paste a link.",
 };
 
 export default function PublicVerifyPage() {
@@ -44,15 +44,15 @@ export default function PublicVerifyPage() {
             Verify a pass
           </h1>
           <p className="mt-3 max-w-xl text-base leading-relaxed text-neutral-600">
-            No account needed. Paste a pass link, QR JSON, or raw token—we&apos;ll show validity and
-            trip details from the server.
+            No account needed. Scan the QR on the traveller&apos;s pass with your camera, or paste a
+            link or token if you prefer.
           </p>
         </div>
 
         <div className="mt-10 w-full">
           <VerifyPassPanel
             title="Check validity"
-            description="Anonymous lookup; only non-sensitive fields are returned."
+            description="Use your camera to scan the pass QR, or switch to Paste for a link or token. Anonymous lookup—only non-sensitive fields are returned."
           />
         </div>
 
