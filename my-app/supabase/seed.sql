@@ -1,0 +1,1 @@
+-- Optional seed data for local development (runs after migrations on `db reset`).

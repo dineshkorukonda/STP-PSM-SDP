@@ -1,287 +1,276 @@
-"use client";
-
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import {
-  Bus,
-  QrCode,
-  Shield,
-  LayoutDashboard,
-  ScanLine,
-  ArrowRight,
-  ChevronRight,
-} from "lucide-react";
+import { Bus, QrCode, ScanLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const features = [
-  {
-    id: "unified",
-    label: "One pass",
-    icon: Bus,
-    headline: "Every mode, one wallet.",
-    detail:
-      "Bus, metro, shared rides, or an all-in-one bundle—issue and renew from the same dashboard.",
-  },
-  {
-    id: "qr",
-    label: "Safe QR",
-    icon: QrCode,
-    headline: "Token-only barcodes.",
-    detail:
-      "The QR holds a secure token. Holder name, validity, and type load when scanned—nothing sensitive in the pixels.",
-  },
-  {
-    id: "verify",
-    label: "Verify",
-    icon: ScanLine,
-    headline: "Staff-ready checks.",
-    detail:
-      "Public and in-dashboard verifiers paste a scan or token and get instant, server-backed pass details.",
-  },
-  {
-    id: "auth",
-    label: "Secure auth",
-    icon: Shield,
-    headline: "Built on Supabase.",
-    detail:
-      "Email and password with row-level security—your passes stay tied to the right account.",
-  },
-  {
-    id: "dash",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    headline: "Create in seconds.",
-    detail:
-      "Pick transport and duration, preview the pass card, and manage everything from a clean, responsive UI.",
-  },
-] as const;
+const ACCENT = "bg-[#6B46FE] hover:bg-[#5b3ad4]";
 
-const steps = [
-  { title: "Sign up", body: "One screen, email and password." },
-  { title: "Create pass", body: "Choose type and length." },
-  { title: "Go", body: "Scan or verify anywhere." },
-];
+function Mark({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-neutral-900",
+        className
+      )}
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden
+      >
+        <rect x="4" y="5" width="16" height="5" rx="2.5" fill="currentColor" />
+        <rect x="4" y="14" width="16" height="5" rx="2.5" fill="currentColor" />
+      </svg>
+    </span>
+  );
+}
+
+function NavPill() {
+  return (
+    <header className="pointer-events-none fixed left-0 right-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-4 sm:pt-4">
+      <div className="pointer-events-auto flex w-full max-w-3xl items-center justify-between gap-2 rounded-full bg-neutral-900 px-3 py-2 text-white shadow-md sm:px-4">
+        <Link href="/" className="shrink-0 text-sm font-semibold tracking-tight sm:text-base">
+          SmartPass
+        </Link>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <Link
+            href="/auth?mode=signup"
+            className={cn(
+              "inline-flex rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-colors sm:px-4 sm:py-2 sm:text-sm",
+              ACCENT
+            )}
+          >
+            Get started
+          </Link>
+          <Link
+            href="/auth?mode=login"
+            className="whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-white/90 transition-colors hover:text-white sm:px-4 sm:py-2 sm:text-sm"
+          >
+            Sign in
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function NotificationMock({
+  iconClass,
+  children,
+}: {
+  iconClass: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-neutral-900 px-4 py-3 text-sm text-white shadow-md">
+      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-full", iconClass)} />
+      <span className="font-medium leading-snug">{children}</span>
+    </div>
+  );
+}
+
+function FeatureVisualPasses() {
+  return (
+    <div className="relative flex min-h-[280px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-8 sm:min-h-[320px]">
+      <div className="flex w-full max-w-[280px] flex-col gap-3">
+        <NotificationMock iconClass="bg-amber-500">
+          Pass issued — Metro 7-day, active now
+        </NotificationMock>
+        <NotificationMock iconClass="bg-[#6B46FE]">
+          QR renewed — valid through next Sunday
+        </NotificationMock>
+      </div>
+    </div>
+  );
+}
+
+function FeatureVisualQr() {
+  return (
+    <div className="relative flex min-h-[280px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-8 sm:min-h-[320px]">
+      <div className="rounded-2xl bg-white p-6 shadow-lg">
+        <div className="mx-auto grid size-36 place-items-center rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50">
+          <QrCode className="size-20 text-neutral-900" strokeWidth={1.25} aria-hidden />
+        </div>
+        <p className="mt-4 text-center text-xs font-medium text-neutral-500">Token-only payload</p>
+      </div>
+    </div>
+  );
+}
+
+function FeatureVisualVerify() {
+  return (
+    <div className="relative flex min-h-[280px] items-center justify-center rounded-[2rem] bg-sky-200/90 p-8 sm:min-h-[320px]">
+      <div className="flex w-full max-w-[280px] flex-col gap-3">
+        <NotificationMock iconClass="bg-emerald-500">Pass verified — OK to board</NotificationMock>
+        <NotificationMock iconClass="bg-neutral-600">Staff scan — server-backed result</NotificationMock>
+      </div>
+    </div>
+  );
+}
 
 export default function LandingPage() {
-  const [activeId, setActiveId] = useState<string>(features[0].id);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const orbRef = useRef<HTMLDivElement>(null);
-
-  const active = features.find((f) => f.id === activeId) ?? features[0];
-  const ActiveIcon = active.icon;
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    queueMicrotask(() => setReduceMotion(mq.matches));
-    const onChange = () => setReduceMotion(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
-  useEffect(() => {
-    if (reduceMotion) return;
-    const onMove = (e: MouseEvent) => {
-      const el = orbRef.current;
-      if (!el) return;
-      const x = (e.clientX / window.innerWidth - 0.5) * 24;
-      const y = (e.clientY / window.innerHeight - 0.5) * 24;
-      el.style.transform = `translate(${x}px, ${y}px)`;
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [reduceMotion]);
-
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      <div
-        ref={orbRef}
-        className="pointer-events-none fixed -left-32 top-1/4 size-[420px] rounded-full bg-primary/10 blur-3xl transition-transform duration-500 ease-out will-change-transform"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none fixed -right-24 bottom-1/4 size-80 rounded-full bg-primary/5 blur-3xl"
-        aria-hidden
-      />
+    <div className="min-h-screen bg-white text-neutral-900">
+      <NavPill />
 
-      <header className="relative z-10 border-b border-border">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:h-16 sm:px-6">
-          <Link href="/" className="text-sm font-semibold tracking-tight">
-            SmartPass
-          </Link>
-          <nav className="flex items-center gap-6 text-sm" aria-label="Main">
-            <Link
-              href="/verify"
-              className="hidden text-muted-foreground transition-colors hover:text-foreground sm:inline"
-            >
-              Verify
-            </Link>
-            <Link
-              href="/auth?mode=login"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/auth?mode=signup"
-              className="font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              Start
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className="relative z-10">
-        <section className="mx-auto max-w-5xl px-4 pb-20 pt-16 sm:px-6 sm:pb-28 sm:pt-24">
-          <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Digital transport
-          </p>
-          <h1 className="mx-auto mt-6 max-w-2xl text-center text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl sm:leading-[1.08]">
-            One pass.
+      <main>
+        <section className="mx-auto max-w-5xl px-6 pb-20 pt-32 text-center sm:pb-28 sm:pt-40">
+          <h1 className="text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl sm:leading-[1.05]">
+            One pass for
             <br />
-            <span className="text-muted-foreground">All your rides.</span>
+            every ride
           </h1>
-          <p className="mx-auto mt-6 max-w-md text-center text-base leading-relaxed text-muted-foreground">
-            Minimal tools for travellers and operators: issue passes, scan QR codes, verify
-            validity—without clutter.
+          <p className="mx-auto mt-6 max-w-xl text-base text-neutral-500 sm:text-lg">
+            SmartPass is simpler, faster, and built for travellers and operators who want passes,
+            QR codes, and verification without the clutter.
           </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
             <Link
               href="/auth?mode=signup"
-              className="inline-flex items-center gap-2 text-sm font-medium text-foreground underline-offset-4 hover:underline"
+              className={cn(
+                "inline-flex w-full items-center justify-center rounded-full px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors sm:w-auto",
+                ACCENT
+              )}
             >
-              Create account
-              <ArrowRight className="size-4" />
+              Get started free
             </Link>
-            <Link
-              href="/verify"
-              className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            <a
+              href="#features"
+              className="inline-flex w-full items-center justify-center rounded-full border border-neutral-200 bg-white px-8 py-3.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50 sm:w-auto"
             >
-              Try verify
-            </Link>
+              See features
+            </a>
           </div>
         </section>
 
         <section
           id="features"
-          className="mx-auto max-w-5xl border-t border-border px-4 py-16 sm:px-6 sm:py-20"
+          className="mx-auto max-w-6xl scroll-mt-28 px-6 py-20 sm:scroll-mt-32 sm:py-28"
           aria-labelledby="features-heading"
         >
-          <div>
-            <h2 id="features-heading" className="text-lg font-semibold tracking-tight">
-              What you get
+          <div className="text-center">
+            <h2
+              id="features-heading"
+              className="text-4xl font-bold tracking-tight sm:text-5xl"
+            >
+              Features
             </h2>
-            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              Choose a topic—the detail updates below.
+            <p className="mx-auto mt-4 max-w-2xl text-neutral-500">
+              Everything you need to issue passes, share QR codes, and verify riders in one place.
             </p>
           </div>
 
-          <div
-            className="mt-8 flex flex-wrap gap-x-1 gap-y-2 text-sm"
-            role="tablist"
-            aria-label="Features"
+          <div className="mt-20 grid items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24">
+            <FeatureVisualPasses />
+            <div>
+              <div className="mb-4 inline-flex size-12 items-center justify-center rounded-2xl bg-neutral-100">
+                <Bus className="size-6 text-neutral-900" strokeWidth={1.5} aria-hidden />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Every mode, one wallet
+              </h3>
+              <p className="mt-4 text-neutral-500">
+                Bus, metro, bundles, or custom products—create and renew from the same dashboard so
+                riders always know what&apos;s active.
+              </p>
+              <Link
+                href="/auth?mode=signup"
+                className={cn(
+                  "mt-8 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
+                  ACCENT
+                )}
+              >
+                Get started free
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-24 grid items-center gap-12 md:grid-cols-2 md:gap-16 lg:mt-32 lg:gap-24">
+            <div className="order-2 md:order-1">
+              <div className="mb-4 inline-flex size-12 items-center justify-center rounded-2xl bg-neutral-100">
+                <QrCode className="size-6 text-neutral-900" strokeWidth={1.5} aria-hidden />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Token-only barcodes
+              </h3>
+              <p className="mt-4 text-neutral-500">
+                QR codes carry a secure token—sensitive details load on scan so nothing unnecessary
+                sits in the pixels.
+              </p>
+              <Link
+                href="/auth?mode=signup"
+                className={cn(
+                  "mt-8 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
+                  ACCENT
+                )}
+              >
+                Get started free
+              </Link>
+            </div>
+            <div className="order-1 md:order-2">
+              <FeatureVisualQr />
+            </div>
+          </div>
+
+          <div className="mt-24 grid items-center gap-12 md:grid-cols-2 md:gap-16 lg:mt-32 lg:gap-24">
+            <FeatureVisualVerify />
+            <div>
+              <div className="mb-4 inline-flex size-12 items-center justify-center rounded-2xl bg-neutral-100">
+                <ScanLine className="size-6 text-neutral-900" strokeWidth={1.5} aria-hidden />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Staff-ready verification
+              </h3>
+              <p className="mt-4 text-neutral-500">
+                Paste a token or scan from the dashboard—get instant, server-backed pass details for
+                gate checks and support.
+              </p>
+              <Link
+                href="/auth?mode=signup"
+                className={cn(
+                  "mt-8 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white transition-colors",
+                  ACCENT
+                )}
+              >
+                Get started free
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-3xl px-6 py-20 text-center sm:py-28">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to ship passes?</h2>
+          <p className="mt-4 text-neutral-500">
+            Create an account and issue your first pass in minutes.
+          </p>
+          <Link
+            href="/auth?mode=signup"
+            className={cn(
+              "mt-10 inline-flex rounded-full px-8 py-3.5 text-sm font-semibold text-white transition-colors",
+              ACCENT
+            )}
           >
-            {features.map((f, i) => {
-              const isOn = activeId === f.id;
-              return (
-                <span key={f.id} className="inline-flex items-center">
-                  {i > 0 ? (
-                    <span className="mx-2 text-muted-foreground/40" aria-hidden>
-                      ·
-                    </span>
-                  ) : null}
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={isOn}
-                    onMouseEnter={() => setActiveId(f.id)}
-                    onFocus={() => setActiveId(f.id)}
-                    onClick={() => setActiveId(f.id)}
-                    className={cn(
-                      "transition-colors",
-                      isOn
-                        ? "font-medium text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {f.label}
-                  </button>
-                </span>
-              );
-            })}
-          </div>
+            Get started free
+          </Link>
+        </section>
 
-          <div className="mt-10 border-t border-border pt-10">
-            <div className="flex items-start gap-4">
-              <div className="text-primary">
-                <ActiveIcon className="size-5" aria-hidden />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-xl font-semibold tracking-tight">{active.headline}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {active.detail}
-                </p>
-                <Link
-                  href="/auth?mode=signup"
-                  className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary"
-                >
-                  Get started
-                  <ChevronRight className="size-4" />
-                </Link>
-              </div>
+        <footer className="border-t border-neutral-100 py-10">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 text-sm text-neutral-500 sm:flex-row">
+            <div className="flex items-center gap-2 font-semibold text-neutral-900">
+              <Mark className="bg-neutral-900 text-white" />
+              SmartPass
             </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-5xl border-t border-border px-4 py-16 sm:px-6 sm:py-20">
-          <h2 className="text-lg font-semibold tracking-tight">How it works</h2>
-          <ol className="mt-10 grid gap-8 sm:grid-cols-3">
-            {steps.map((s, i) => (
-              <li key={s.title} className="relative">
-                <span className="text-xs font-mono text-muted-foreground">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <p className="mt-2 font-medium">{s.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="mx-auto max-w-5xl border-t border-border px-4 py-16 sm:px-6 sm:py-24">
-          <div className="border-t border-border pt-12 text-center sm:pt-16">
-            <p className="text-lg font-semibold tracking-tight">Ready when you are.</p>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-              No noise—just sign in and create your first pass.
-            </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
-              <Link
-                href="/auth"
-                className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
-              >
-                Open auth
-              </Link>
-              <Link
-                href="/dashboard"
-                className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-              >
-                I already have an account →
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <footer className="border-t border-border py-10">
-          <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
-            <span>© {new Date().getFullYear()} SmartPass</span>
-            <div className="flex gap-6">
-              <Link href="/auth?mode=login" className="hover:text-foreground">
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <a href="#features" className="hover:text-neutral-900">
+                Features
+              </a>
+              <Link href="/auth?mode=login" className="hover:text-neutral-900">
                 Sign in
               </Link>
-              <Link href="/verify" className="hover:text-foreground">
-                Verify
-              </Link>
             </div>
+            <span className="text-xs">© {new Date().getFullYear()} SmartPass</span>
           </div>
         </footer>
       </main>
