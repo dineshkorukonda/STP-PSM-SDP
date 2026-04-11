@@ -14,7 +14,14 @@ export default async function PublicPassPage({ params }: PageProps) {
     token = raw;
   }
 
-  const pass = await getPassPublicByToken(token);
+  let pass: Awaited<ReturnType<typeof getPassPublicByToken>> = null;
+  let loadError = false;
+  try {
+    pass = await getPassPublicByToken(token);
+  } catch (e) {
+    console.error("p/[token]:", e);
+    loadError = true;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background text-foreground">
@@ -38,7 +45,24 @@ export default async function PublicPassPage({ params }: PageProps) {
           Details loaded from the server for this QR link.
         </p>
 
-        {!pass ? (
+        {loadError ? (
+          <div
+            className="mt-8 rounded-xl border border-red-200 bg-red-50 p-6 text-red-900"
+            role="alert"
+          >
+            <p className="font-semibold">Could not load this pass</p>
+            <p className="mt-2 text-sm opacity-90">
+              The server could not reach the database. If you are the operator, check DATABASE_URL
+              and SSL settings on your host.
+            </p>
+            <Link
+              href="/verify"
+              className="mt-4 inline-block text-sm font-medium underline underline-offset-4"
+            >
+              Try manual verify
+            </Link>
+          </div>
+        ) : !pass ? (
           <div
             className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
             role="status"

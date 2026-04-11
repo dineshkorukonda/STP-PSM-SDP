@@ -7,18 +7,37 @@ if (!connectionString && process.env.NODE_ENV !== "test") {
 
 const globalForPool = globalThis as unknown as { __pgPool?: Pool };
 
+function isServerlessRuntime(): boolean {
+  return Boolean(
+    process.env.VERCEL ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.NETLIFY ||
+      process.env.FUNCTIONS_WORKER_RUNTIME
+  );
+}
+
 function buildPoolConfig(): PoolConfig {
   if (!connectionString) {
     throw new Error("Missing DATABASE_URL");
   }
 
+  const serverless = isServerlessRuntime();
+  const defaultMax = serverless ? 1 : 10;
+  const max = Math.min(
+    50,
+    Math.max(serverless ? 1 : 2, Number(process.env.DATABASE_POOL_MAX || defaultMax))
+  );
+
   const config: PoolConfig = {
     connectionString,
-    max: Math.min(50, Math.max(2, Number(process.env.DATABASE_POOL_MAX || 10))),
+    max,
+    idleTimeoutMillis: serverless ? 20_000 : 30_000,
+    connectionTimeoutMillis: serverless ? 15_000 : 5000,
   };
 
   const sslFlag = process.env.DATABASE_SSL;
-  if (sslFlag === "true" || sslFlag === "1") {
+  const urlSuggestsSsl = /sslmode=(require|verify-full|verify-ca)/i.test(connectionString);
+  if (sslFlag === "true" || sslFlag === "1" || urlSuggestsSsl) {
     config.ssl = {
       rejectUnauthorized:
         process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false",

@@ -64,6 +64,25 @@ export async function POST(request: Request) {
     return res;
   } catch (e) {
     console.error("auth/signup:", e);
-    return NextResponse.json({ error: "Could not create account." }, { status: 500 });
+    const message = e instanceof Error ? e.message : "";
+    if (message.includes("Missing DATABASE_URL")) {
+      return NextResponse.json(
+        { error: "Server is missing DATABASE_URL." },
+        { status: 503 }
+      );
+    }
+    if (message.includes("AUTH_SECRET")) {
+      return NextResponse.json(
+        { error: "Server is missing a valid AUTH_SECRET." },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json(
+      {
+        error: "Could not create account.",
+        ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
+      },
+      { status: 500 }
+    );
   }
 }
