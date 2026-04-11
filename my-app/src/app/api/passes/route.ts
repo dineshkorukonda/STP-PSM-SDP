@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "@/lib/db/pool";
 import { getSessionUserId } from "@/lib/auth/session";
-import { apiErrorStatus, isDatabaseConnectivityError } from "@/lib/db/errors";
+import { describeServerDbFailure } from "@/lib/db/errors";
 import {
   computeExpiryDate,
   formatDateISO,
@@ -41,21 +41,10 @@ export async function GET() {
     return NextResponse.json({ passes: rows });
   } catch (e) {
     console.error("passes GET:", e);
-    const message = e instanceof Error ? e.message : "Unknown error";
-    const isConfig = message.includes("Missing DATABASE_URL");
-    const connectivity = isDatabaseConnectivityError(e);
-    const status = apiErrorStatus(e, isConfig);
-    const errorText = isConfig
-      ? "Database is not configured."
-      : connectivity
-        ? "Database is temporarily unreachable."
-        : "Failed to load passes.";
+    const d = describeServerDbFailure(e, { fallbackError: "Failed to load passes." });
     return NextResponse.json(
-      {
-        error: errorText,
-        ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
-      },
-      { status }
+      { error: d.error, ...(d.debug ? { debug: d.debug } : {}) },
+      { status: d.status }
     );
   }
 }
@@ -131,21 +120,10 @@ export async function POST(request: Request) {
     }
   } catch (e) {
     console.error("passes POST:", e);
-    const message = e instanceof Error ? e.message : "Unknown error";
-    const isConfig = message.includes("Missing DATABASE_URL");
-    const connectivity = isDatabaseConnectivityError(e);
-    const status = apiErrorStatus(e, isConfig);
-    const errorText = isConfig
-      ? "Database is not configured."
-      : connectivity
-        ? "Database is temporarily unreachable."
-        : "Failed to create pass.";
+    const d = describeServerDbFailure(e, { fallbackError: "Failed to create pass." });
     return NextResponse.json(
-      {
-        error: errorText,
-        ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
-      },
-      { status }
+      { error: d.error, ...(d.debug ? { debug: d.debug } : {}) },
+      { status: d.status }
     );
   }
 }

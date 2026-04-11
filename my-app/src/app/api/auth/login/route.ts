@@ -3,14 +3,22 @@ import { getPool } from "@/lib/db/pool";
 import { verifyPassword } from "@/lib/auth/password";
 import { signSessionToken } from "@/lib/auth/jwt";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SEC } from "@/lib/auth/constants";
-import { apiErrorStatus, isDatabaseConnectivityError } from "@/lib/db/errors";
+import { describeServerDbFailure } from "@/lib/db/errors";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const email =
-      typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
-    const password = typeof body?.password === "string" ? body.password : "";
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    }
+    const b =
+      body && typeof body === "object"
+        ? (body as Record<string, unknown>)
+        : {};
+    const email = typeof b.email === "string" ? b.email.trim().toLowerCase() : "";
+    const password = typeof b.password === "string" ? b.password : "";
 
     if (!email || !password) {
       return NextResponse.json(
@@ -50,29 +58,10 @@ export async function POST(request: Request) {
     return res;
   } catch (e) {
     console.error("auth/login:", e);
-    const message = e instanceof Error ? e.message : "";
-    if (message.includes("Missing DATABASE_URL")) {
-      return NextResponse.json(
-        { error: "Server is missing DATABASE_URL." },
-        { status: 503 }
-      );
-    }
-    if (message.includes("AUTH_SECRET")) {
-      return NextResponse.json(
-        { error: "Server is missing a valid AUTH_SECRET." },
-        { status: 503 }
-      );
-    }
-    const status = apiErrorStatus(e, false);
-    const errMsg = isDatabaseConnectivityError(e)
-      ? "Database is temporarily unreachable."
-      : "Login failed.";
+    const d = describeServerDbFailure(e, { fallbackError: "Login failed." });
     return NextResponse.json(
-      {
-        error: errMsg,
-        ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
-      },
-      { status }
+      { error: d.error, ...(d.debug ? { debug: d.debug } : {}) },
+      { status: d.status }
     );
   }
 }

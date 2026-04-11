@@ -1,5 +1,5 @@
 import { getPool } from "@/lib/db/pool";
-import { apiErrorStatus, isDatabaseConnectivityError } from "@/lib/db/errors";
+import { describeServerDbFailure } from "@/lib/db/errors";
 import { getSessionUserId } from "@/lib/auth/session";
 import type { User } from "@/types";
 
@@ -41,24 +41,12 @@ export async function loadSessionUser(): Promise<LoadSessionUserResult> {
     };
   } catch (e) {
     console.error("loadSessionUser:", e);
-    const message = e instanceof Error ? e.message : "Unknown error";
-    const isDbConfig = message.includes("Missing DATABASE_URL");
-    const isAuthConfig = message.includes("AUTH_SECRET");
-    const isConfig = isDbConfig || isAuthConfig;
-    const connectivity = isDatabaseConnectivityError(e);
-    const httpStatus = apiErrorStatus(e, isConfig);
-    const errorText = isDbConfig
-      ? "Database is not configured."
-      : isAuthConfig
-        ? "AUTH_SECRET is not configured."
-        : connectivity
-          ? "Database is temporarily unreachable."
-          : "Could not load session.";
+    const d = describeServerDbFailure(e, { fallbackError: "Could not load session." });
     return {
       status: "error",
-      httpStatus,
-      message: errorText,
-      ...(process.env.NODE_ENV === "development" ? { debug: message } : {}),
+      httpStatus: d.status,
+      message: d.error,
+      ...(d.debug ? { debug: d.debug } : {}),
     };
   }
 }
